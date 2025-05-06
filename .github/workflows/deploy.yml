@@ -14,7 +14,7 @@ on:
 jobs:
   Test:
     if: github.event.pull_request.merged == true
-    uses: OO25/ENSE701_SPEED/.github/workflows/test-workflow.yml@main
+    uses: shaz12-gif/ENSE701_SPEED/.github/workflows/test-workflow.yml@Development
 
   Deploy-Production:
     if: github.event.pull_request.merged == true

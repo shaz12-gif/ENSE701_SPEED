@@ -9,7 +9,7 @@ on:
 
 jobs:
   Test:
-    uses: OO25/ENSE701_SPEED/.github/workflows/test-workflow.yml@main
+    uses: shaz12-gif25/ENSE701_SPEED/.github/workflows/test-workflow.yml@Development
 
   Deploy-Preview:
     runs-on: ubuntu-latest
