@@ -2,9 +2,9 @@ name: GitHub Actions Test
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "Development" ]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "Development" ]
   workflow_call:
   workflow_dispatch:
 
