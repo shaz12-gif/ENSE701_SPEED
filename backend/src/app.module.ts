@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { UploadModule } from './api/upload/upload.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { ConfigModule } from '@nestjs/config';
     MongooseModule.forRoot(
       process.env.DB_URI || 'mongodb://localhost:27017/default-db',
     ),
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
