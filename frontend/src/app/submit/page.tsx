@@ -6,11 +6,12 @@ import Link from 'next/link';
 
 export default function SubmitEvidenceForm() {
   const router = useRouter();
-  const [practices, setPractices] = useState([]);
+  type Practice = { id: string | number; name: string };
+  const [practices, setPractices] = useState<Practice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     practiceId: '',
     title: '',
@@ -24,13 +25,10 @@ export default function SubmitEvidenceForm() {
     async function fetchPractices() {
       try {
         const response = await fetch('/api/practices');
-        
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
-        
         const data = await response.json();
-        
         if (data.success) {
           setPractices(data.data);
         } else {
@@ -38,7 +36,11 @@ export default function SubmitEvidenceForm() {
         }
       } catch (err) {
         console.error("Error fetching practices:", err);
-        setError(err.message);
+        setError(
+          err && typeof err === "object" && "message" in err
+            ? (err as { message: string }).message
+            : "An unknown error occurred"
+        );
       } finally {
         setLoading(false);
       }
@@ -47,7 +49,7 @@ export default function SubmitEvidenceForm() {
     fetchPractices();
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -55,7 +57,7 @@ export default function SubmitEvidenceForm() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitError(null);
@@ -86,7 +88,7 @@ export default function SubmitEvidenceForm() {
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         // Redirect to practices page or show success message
         alert("Evidence submitted successfully!");
@@ -96,7 +98,11 @@ export default function SubmitEvidenceForm() {
       }
     } catch (err) {
       console.error("Error submitting evidence:", err);
-      setSubmitError(err.message);
+      setSubmitError(
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "An unknown error occurred"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -108,17 +114,17 @@ export default function SubmitEvidenceForm() {
   return (
     <div className="submit-form">
       <h1>Submit New Evidence</h1>
-      
+
       {submitError && (
         <div className="error-message">
           {submitError}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="practiceId">Software Engineering Practice*</label>
-          <select 
+          <select
             id="practiceId"
             name="practiceId"
             value={formData.practiceId}
@@ -133,7 +139,7 @@ export default function SubmitEvidenceForm() {
             ))}
           </select>
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="title">Title*</label>
           <textarea
@@ -142,10 +148,10 @@ export default function SubmitEvidenceForm() {
             value={formData.title}
             onChange={handleChange}
             required
-            rows="4"
+            rows={4}
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="source">Source*</label>
           <input
@@ -158,7 +164,7 @@ export default function SubmitEvidenceForm() {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="year">Year</label>
           <input
@@ -172,7 +178,7 @@ export default function SubmitEvidenceForm() {
             max="2100"
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="description">Description</label>
           <textarea
@@ -180,13 +186,13 @@ export default function SubmitEvidenceForm() {
             name="description"
             value={formData.description}
             onChange={handleChange}
-            rows="6"
+            rows={6}
           />
         </div>
-        
+
         <div className="form-actions">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={submitting}
           >
             {submitting ? 'Submitting...' : 'Submit Evidence'}
