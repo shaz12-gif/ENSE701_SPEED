@@ -25,7 +25,13 @@ export class UploadController {
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return this.uploadService.saveFile(file);
+    try {
+      const saved = await this.uploadService.saveFile(file);
+      return { success: true, data: saved };
+    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      return { success: false, message: error.message };
+    }
   }
 
   // Handles file retrieval requests by ID (GET /upload/:id)
@@ -45,5 +51,11 @@ export class UploadController {
     } else {
       res.send(fileDoc.data);
     }
+  }
+
+  // Handles errors and returns a standardized error response
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private handleError(error: any) {
+    return { success: false, message: 'Some error message' };
   }
 }

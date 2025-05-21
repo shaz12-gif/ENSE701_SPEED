@@ -1,4 +1,4 @@
-export async function GET(request) {
+export async function GET() {
   console.log("Fetching all practices");
   
   try {

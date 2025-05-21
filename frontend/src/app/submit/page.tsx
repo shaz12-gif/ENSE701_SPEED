@@ -19,6 +19,7 @@ export default function SubmitEvidenceForm() {
     year: new Date().getFullYear(),
     description: ''
   });
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
 
   // Fetch practices on component mount
   useEffect(() => {
@@ -57,30 +58,38 @@ export default function SubmitEvidenceForm() {
     }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setEvidenceFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitError(null);
 
     try {
-      // Validate form
       if (!formData.practiceId) {
         throw new Error("Please select a practice");
       }
+      if (!evidenceFile) {
+        throw new Error("Please select a file to upload");
+      }
 
-      // Make API call
-      console.log(`Submitting evidence for practice ID: ${formData.practiceId}`);
-      const response = await fetch(`/api/practices/${formData.practiceId}/evidence`, {
+      // Prepare FormData for file upload
+      const uploadData = new FormData();
+      uploadData.append('file', evidenceFile);
+      uploadData.append('practiceId', formData.practiceId);
+      uploadData.append('title', formData.title);
+      uploadData.append('source', formData.source);
+      uploadData.append('year', String(formData.year));
+      uploadData.append('description', formData.description);
+
+      // Send to your backend upload endpoint
+      const response = await fetch('http://localhost:3001/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          source: formData.source,
-          year: formData.year,
-          description: formData.description
-        }),
+        body: uploadData,
       });
 
       if (!response.ok) {
@@ -88,9 +97,9 @@ export default function SubmitEvidenceForm() {
       }
 
       const result = await response.json();
+      console.log("Backend response:", result);
 
       if (result.success) {
-        // Redirect to practices page or show success message
         alert("Evidence submitted successfully!");
         router.push('/practices');
       } else {
@@ -187,6 +196,18 @@ export default function SubmitEvidenceForm() {
             value={formData.description}
             onChange={handleChange}
             rows={6}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="evidenceFile">Evidence File (.pdf or .bib)</label>
+          <input
+            type="file"
+            id="evidenceFile"
+            name="evidenceFile"
+            accept=".pdf,.bib"
+            onChange={handleFileChange}
+            required
           />
         </div>
 
