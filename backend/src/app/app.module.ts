@@ -12,7 +12,7 @@ import { SEPracticeModule } from '../se-practice/se-practice.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
+        uri: process.env.DB_URI || configService.get<string>('DB_URI') || 'mongodb://localhost:27017/default-db',
       }),
       inject: [ConfigService],
     }),
