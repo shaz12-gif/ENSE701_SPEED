@@ -42,9 +42,9 @@ export class UploadController {
 
   /**
    * Handles evidence submission requests with optional file upload
-   * @param file - Optional PDF or BibTeX file
-   * @param evidenceData - Metadata about the evidence
-   * @returns Success status and saved evidence data
+   * Checks the fields
+   * calls app.service.saveFile to save the evidence data
+   * returns a sucess or error message
    */
   @Post()
   @UseInterceptors(FileInterceptor('file'))
@@ -86,10 +86,7 @@ export class UploadController {
 
   /**
    * Retrieves a previously uploaded file by ID
-   * @param id - MongoDB ObjectId of the file
-   * @param res - Express Response object
-   * @throws NotFoundException if file not found
-   * This stuff isnt actually used yet but can be sued for vieweing and searching
+   * Dont need this yet, but will be used to display evidence
    */
   @Get(':id')
   async getFile(@Param('id') id: string, @Res() res: Response) {

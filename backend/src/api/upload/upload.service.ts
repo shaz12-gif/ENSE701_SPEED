@@ -33,10 +33,9 @@ export class UploadService {
 
   /**
    * Saves an uploaded file to the database
-   * @param file The uploaded file (PDF or .bib)
-   * @param _evidenceData Associated evidence metadata
-   * @returns Promise<UploadedFile> The saved file document
-   * @throws Error if file is invalid or unsupported format
+   * checks if the required fields are present
+   * if a file is uploaded the title/source/year are optional
+   * if no file is uploaded title/source/year are required
    */
   async saveFile(
     file: Express.Multer.File | null,
@@ -102,9 +101,7 @@ export class UploadService {
   }
 
   /**
-   * Retrieves a file from the database by its ID
-   * @param id MongoDB ObjectId of the file
-   * @returns Promise<UploadedFile | null> The found file or null
+   * Retrieves a file by its ID from the database
    */
   async findFileById(id: string): Promise<UploadedFile | null> {
     if (!id?.match(/^[0-9a-fA-F]{24}$/)) {

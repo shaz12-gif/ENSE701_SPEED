@@ -17,7 +17,8 @@ export default function SubmitEvidenceForm() {
   type Practice = { id: string | number; name: string };
   type Claim = { id: string; text: string };
 
-  // State management for form data and UI
+  // State management for form data and UI 
+  // The state is what the user has typed in the form and what the application needs to display
   const [practices, setPractices] = useState<Practice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,8 @@ export default function SubmitEvidenceForm() {
   // State for file upload
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
 
-  // Fetch available practices when component mounts
+  // Fetch available practices when component starts
+  // This is the first thing that happens when the component is rendered
   useEffect(() => {
     async function fetchPractices() {
       try {
@@ -77,7 +79,7 @@ export default function SubmitEvidenceForm() {
     fetchPractices();
   }, []);
 
-  // Handle changes in form input fields
+  // Updates the form when the user types or selects something
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -86,14 +88,14 @@ export default function SubmitEvidenceForm() {
     }));
   };
 
-  // Handle file input changes
+  // updates the file when the user selects a file
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setEvidenceFile(e.target.files[0]);
     }
   };
 
-  // Handle form submission
+  // runs when the user submits the form
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
@@ -163,7 +165,7 @@ export default function SubmitEvidenceForm() {
   if (loading) return <div className="loading">Loading practices...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
-  // Main form render
+  // Renders the actual form
   return (
     <div className="submit-form">
       <h1>Submit New Evidence</h1>
