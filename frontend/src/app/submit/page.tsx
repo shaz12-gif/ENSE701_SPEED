@@ -1,3 +1,8 @@
+/**
+ * Author: Andrew Koves
+ * ID: 20126313
+ */
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -5,23 +10,45 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SubmitEvidenceForm() {
+  // Router instance for navigation after submission
   const router = useRouter();
+
+  // Type definitions for data structures
   type Practice = { id: string | number; name: string };
+  type Claim = { id: string; text: string };
+
+  // State management for form data and UI
   const [practices, setPractices] = useState<Practice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Predefined claims available for selection
+  const claims: Claim[] = [
+    { id: '1', text: 'Improves code quality' },
+    { id: '2', text: 'Reduces development time' },
+    { id: '3', text: 'Increases team productivity' },
+    { id: '4', text: 'Improves maintainability' },
+    { id: '5', text: 'Reduces bugs' },
+    { id: '6', text: 'Enhances collaboration' }
+  ];
+
+  // Initializes form data
   const [formData, setFormData] = useState({
-    practiceId: '',
-    title: '',
-    source: '',
-    year: new Date().getFullYear(),
-    description: ''
+    practiceId: '',      
+    claimId: '',         
+    supportsClaim: true, 
+    title: '',          
+    source: '',          
+    year: '',           
+    description: ''      
   });
+
+  // State for file upload
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
 
-  // Fetch practices on component mount
+  // Fetch available practices when component mounts
   useEffect(() => {
     async function fetchPractices() {
       try {
@@ -50,6 +77,7 @@ export default function SubmitEvidenceForm() {
     fetchPractices();
   }, []);
 
+  // Handle changes in form input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -58,46 +86,60 @@ export default function SubmitEvidenceForm() {
     }));
   };
 
+  // Handle file input changes
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setEvidenceFile(e.target.files[0]);
     }
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitError(null);
 
     try {
+      // Validate required fields
       if (!formData.practiceId) {
         throw new Error("Please select a practice");
       }
-      if (!evidenceFile) {
-        throw new Error("Please select a file to upload");
+      if (!formData.claimId) {
+        throw new Error("Please select a claim");
       }
 
-      // Prepare FormData for file upload
-      const uploadData = new FormData();
-      uploadData.append('file', evidenceFile);
-      uploadData.append('practiceId', formData.practiceId);
-      uploadData.append('title', formData.title);
-      uploadData.append('source', formData.source);
-      uploadData.append('year', String(formData.year));
-      uploadData.append('description', formData.description);
+      // Create FormData object for submission
+      const formPayload = new FormData();
+      
+      // Add always required fields
+      formPayload.append('practiceId', formData.practiceId);
+      formPayload.append('claimId', formData.claimId);
+      formPayload.append('supportsClaim', String(formData.supportsClaim));
 
-      // Send to your backend upload endpoint
+      if (evidenceFile) {
+        // If file is uploaded add only the file
+        formPayload.append('file', evidenceFile);
+      } else {
+        // Validate and add manual input fields if no file
+        if (!formData.title) throw new Error("Please enter a title");
+        if (!formData.source) throw new Error("Please enter a source");
+        if (!formData.year) throw new Error("Please enter a year");
+
+        formPayload.append('title', formData.title);
+        formPayload.append('source', formData.source);
+        formPayload.append('year', String(formData.year));
+        if (formData.description) {
+          formPayload.append('description', formData.description);
+        }
+      }
+
+      // Submit to backend
       const response = await fetch('http://localhost:3001/upload', {
         method: 'POST',
-        body: uploadData,
+        body: formPayload,
       });
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
-      }
-
       const result = await response.json();
-      console.log("Backend response:", result);
 
       if (result.success) {
         alert("Evidence submitted successfully!");
@@ -117,9 +159,11 @@ export default function SubmitEvidenceForm() {
     }
   };
 
+  // Loading and error states
   if (loading) return <div className="loading">Loading practices...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
+  // Main form render
   return (
     <div className="submit-form">
       <h1>Submit New Evidence</h1>
@@ -150,19 +194,61 @@ export default function SubmitEvidenceForm() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="title">Title*</label>
+          <label htmlFor="claimId">Claim*</label>
+          <select
+            id="claimId"
+            name="claimId"
+            value={formData.claimId}
+            onChange={handleChange}
+            required
+            className="form-select"
+          >
+            <option value="">Select a claim</option>
+            {claims.map((claim) => (
+              <option key={claim.id} value={claim.id}>
+                {claim.text}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {formData.claimId && (
+          <div className="form-group claim-support">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="supportsClaim"
+                checked={formData.supportsClaim}
+                onChange={(e) => 
+                  setFormData(prev => ({
+                    ...prev,
+                    supportsClaim: e.target.checked
+                  }))
+                }
+              />
+              This evidence supports this claim
+            </label>
+          </div>
+        )}
+
+        <div className="form-group">
+          <label htmlFor="title">
+            Title {!evidenceFile && <span className="required">*</span>}
+          </label>
           <textarea
             id="title"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            required
+            required={!evidenceFile}
             rows={4}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="source">Source*</label>
+          <label htmlFor="source">
+            Source {!evidenceFile && <span className="required">*</span>}
+          </label>
           <input
             type="text"
             id="source"
@@ -170,19 +256,21 @@ export default function SubmitEvidenceForm() {
             placeholder="Source (e.g., journal, conference, book)"
             value={formData.source}
             onChange={handleChange}
-            required
+            required={!evidenceFile}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="year">Year</label>
+          <label htmlFor="year">
+            Year {!evidenceFile && <span className="required">*</span>}
+          </label>
           <input
             type="number"
             id="year"
             name="year"
             value={formData.year}
             onChange={handleChange}
-            required
+            required={!evidenceFile}
             min="1900"
             max="2100"
           />
@@ -207,8 +295,10 @@ export default function SubmitEvidenceForm() {
             name="evidenceFile"
             accept=".pdf,.bib"
             onChange={handleFileChange}
-            required
           />
+          <small className="form-help-text">
+            If no file is uploaded, all fields below must be filled manually.
+          </small>
         </div>
 
         <div className="form-actions">
