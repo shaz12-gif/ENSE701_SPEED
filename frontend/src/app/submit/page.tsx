@@ -5,6 +5,9 @@
 
 "use client";
 
+
+/* useState and useEffect are react "hooks" that let youre store and update values,
+and run code when the component loads or updates respectively. */
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -13,7 +16,7 @@ export default function SubmitEvidenceForm() {
   // Router instance for navigation after submission
   const router = useRouter();
 
-  // Type definitions for data structures
+  // Types for dropdowns
   type Practice = { id: string | number; name: string };
   type Claim = { id: string; text: string };
 
@@ -49,7 +52,7 @@ export default function SubmitEvidenceForm() {
   // State for file upload
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
 
-  // Fetch available practices when component starts
+  // Fetch available practices when page starts
   // This is the first thing that happens when the component is rendered
   useEffect(() => {
     async function fetchPractices() {

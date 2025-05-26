@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UploadedFile } from './upload.schema';
+import { uploadedfile } from './upload.schema';
 
 interface EvidenceData {
   practiceId: string;
@@ -23,12 +23,12 @@ interface EvidenceData {
 @Injectable()
 export class UploadService {
   /**
-   * Constructor - Injects the UploadedFile model for database operations
-   * @param uploadedFileModel - Mongoose model for uploaded files
+   * Constructor - Injects the uploadedfile model for database operations
+   * @param uploadedfileModel - Mongoose model for uploaded files
    */
   constructor(
-    @InjectModel(UploadedFile.name)
-    private uploadedFileModel: Model<UploadedFile>,
+    @InjectModel(uploadedfile.name)
+    private uploadedfileModel: Model<uploadedfile>,
   ) {}
 
   /**
@@ -40,13 +40,13 @@ export class UploadService {
   async saveFile(
     file: Express.Multer.File | null,
     parsedData: EvidenceData,
-  ): Promise<UploadedFile> {
+  ): Promise<uploadedfile> {
     // Always validate required fields
     if (!parsedData.practiceId || !parsedData.claimId) {
       throw new BadRequestException('Practice and claim are required');
     }
 
-    let created: UploadedFile;
+    let created: uploadedfile;
 
     try {
       // Base evidence data
@@ -58,7 +58,7 @@ export class UploadService {
 
       if (file) {
         // With file upload other fields are optional
-        created = new this.uploadedFileModel({
+        created = new this.uploadedfileModel({
           ...evidenceData,
           title: parsedData.title || '',
           source: parsedData.source || '',
@@ -79,7 +79,7 @@ export class UploadService {
           );
         }
 
-        created = new this.uploadedFileModel({
+        created = new this.uploadedfileModel({
           ...evidenceData,
           title: parsedData.title,
           source: parsedData.source,
@@ -103,10 +103,10 @@ export class UploadService {
   /**
    * Retrieves a file by its ID from the database
    */
-  async findFileById(id: string): Promise<UploadedFile | null> {
+  async findFileById(id: string): Promise<uploadedfile | null> {
     if (!id?.match(/^[0-9a-fA-F]{24}$/)) {
       throw new BadRequestException('Invalid ID format');
     }
-    return this.uploadedFileModel.findById(id).exec();
+    return this.uploadedfileModel.findById(id).exec();
   }
 }

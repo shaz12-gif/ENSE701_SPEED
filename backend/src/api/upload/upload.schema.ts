@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { config } from 'dotenv';
+config();
 
 /**
  * Author: Andrew Koves
@@ -8,8 +10,11 @@ import { Document } from 'mongoose';
  * Schema definition for uploaded evidence files and metadata.
  * Supports both file uploads and evidence-only submissions.
  */
-@Schema()
-export class UploadedFile extends Document {
+@Schema({
+  collection: process.env.EVIDENCE_COLLECTION,
+  timestamps: true,
+})
+export class uploadedfile extends Document {
   // Evidence metadata
   @Prop({ required: true })
   practiceId: string;
@@ -49,4 +54,4 @@ export class UploadedFile extends Document {
   filetype?: string; // 'pdf' or 'bib'
 }
 
-export const UploadedFileSchema = SchemaFactory.createForClass(UploadedFile);
+export const uploadedfileSchema = SchemaFactory.createForClass(uploadedfile);

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UploadedFile, UploadedFileSchema } from './upload.schema';
+import { uploadedfile, uploadedfileSchema } from './upload.schema';
 import { UploadService } from './upload.service';
 import { UploadController } from './upload.controller';
 
@@ -14,7 +14,7 @@ import { UploadController } from './upload.controller';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: UploadedFile.name, schema: UploadedFileSchema },
+      { name: uploadedfile.name, schema: uploadedfileSchema },
     ]),
   ],
   providers: [UploadService],
