@@ -109,4 +109,11 @@ export class UploadService {
     }
     return this.uploadedfileModel.findById(id).exec();
   }
+
+  /**
+   * Finds files by practice ID
+   */
+  async findByPracticeId(practiceId: string) {
+    return this.uploadedfileModel.find({ practiceId }).exec();
+  }
 }

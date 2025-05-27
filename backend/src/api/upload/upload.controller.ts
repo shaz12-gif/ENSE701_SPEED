@@ -36,7 +36,7 @@ interface UploadResponse {
  * Controller for handling HTTP requests for evidence uploads and retrieval.
  * Supports both file uploads and evidence-only submissions.
  */
-@Controller('upload')
+@Controller('api/upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
@@ -122,6 +122,17 @@ export class UploadController {
         year: fileDoc.year,
         description: fileDoc.description,
       });
+    }
+  }
+
+  @Get('practice/:id')
+  async getEvidenceByPractice(@Param('id') practiceId: string) {
+    try {
+      const evidence = await this.uploadService.findByPracticeId(practiceId);
+      return evidence;
+    } catch (error) {
+      console.error('Failed to fetch evidence:', error);
+      throw new NotFoundException('Evidence not found for this practice');
     }
   }
 }
