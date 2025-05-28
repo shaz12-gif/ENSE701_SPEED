@@ -18,7 +18,7 @@ const SEPracticeService = {
   },
 
   // Get practice by ID
-  getPracticeById: async (id) => {
+  getPracticeById: async (id: unknown) => {
     try {
       const response = await axios.get(`${API_URL}/practices/${id}`);
       return response.data;
@@ -29,7 +29,7 @@ const SEPracticeService = {
   },
 
   // Submit evidence for a practice
-  submitEvidence: async (practiceId, evidenceData) => {
+  submitEvidence: async (practiceId: unknown, evidenceData: unknown) => {
     try {
       const response = await axios.post(`${API_URL}/practices/${practiceId}/evidence`, evidenceData);
       return response.data;

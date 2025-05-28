@@ -103,18 +103,19 @@ export default function PracticesPage() {
       {/* Practice cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {practiceList.map((practice) => (
-          <div 
-            key={practice.id} 
-            className="border rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-          >
-            <h2 className="text-xl font-semibold mb-2">{practice.name}</h2>
-            <p className="text-gray-600 mb-4">{practice.description}</p>
-            <Link 
-              href={`/practices/${practice.id}`}
-              className="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          <div key={practice.id}>
+            <div 
+              className="border rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
             >
-              View Evidence
-            </Link>
+              <h2 className="text-xl font-semibold mb-2">{practice.name}</h2>
+              <p className="text-gray-600 mb-4">{practice.description}</p>
+              <Link 
+                href={`/practices/${practice.id}`}
+                className="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                View Evidence
+              </Link>
+            </div>
           </div>
         ))}
       </div>

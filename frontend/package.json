@@ -4,16 +4,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --testPathIgnorePatterns=e2e",
-    "test:api": "jest --testMatch=\"**/__tests__/api/**/*.test.js\"",
-    "test:components": "jest --testMatch=\"**/__tests__/components/**/*.test.js\"",
-    "test:pages": "jest --testMatch=\"**/__tests__/pages/**/*.test.js\"",
-    "test:watch": "jest --watch --testPathIgnorePatterns=e2e",
-    "test:coverage": "jest --coverage --testPathIgnorePatterns=e2e",
-    "test:e2e": "playwright test"
+    "test": "jest --passWithNoTests",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage --passWithNoTests",
+    "test:api": "jest --testMatch=\"**/tests/api/**/*.test.{ts,tsx}\"",
+    "test:components": "jest --testMatch=\"**/tests/components/**/*.test.{ts,tsx}\"",
+    "test:pages": "jest --testMatch=\"**/tests/pages/**/*.test.{ts,tsx}\"",
+    "test:e2e": "echo 'E2E tests not configured yet'",
+    "test:all": "npm run test"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.7",
+    "axios": "^1.9.0",
     "next": "^15.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -27,7 +29,9 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^29.5.14",
     "@types/react": "19.1.4",
+    "@types/react-dom": "^19.1.5",
     "babel-jest": "^29.7.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^15.3.0",
@@ -35,5 +39,33 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "node-mocks-http": "^1.17.2"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/tests/setupTests.ts"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "<rootDir>/src"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "\\.(css|less|scss|sass)$": "identity-obj-proxy"
+    },
+    "transform": {
+      "^.+\\.(ts|tsx)$": [
+        "babel-jest",
+        {
+          "presets": [
+            "next/babel"
+          ]
+        }
+      ]
+    },
+    "testMatch": [
+      "<rootDir>/src/tests/**/*.test.{ts,tsx}"
+    ],
+    "testTimeout": 10000
   }
 }

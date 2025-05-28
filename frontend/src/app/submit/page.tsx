@@ -53,7 +53,7 @@ export default function SubmitEvidenceForm() {
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
 
   // Fetch available practices when page starts
-  // This is the first thing that happens when the component is rendered
+  // This is the first thing that happens when the page is rendered
   useEffect(() => {
     async function fetchPractices() {
       try {

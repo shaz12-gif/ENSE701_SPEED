@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { getAllPractices } from '../services/practicesAPI';
-import SEPracticesList from '../components/SEPracticesList';
+import { getAllPractices } from '../src/services/practicesAPI';
+import SEPracticesList from '../src/components/SEPracticesList';
 
 export default function PracticesPage() {
   const [practices, setPractices] = useState([]);
