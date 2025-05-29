@@ -12,6 +12,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// Import the API service
+import { createTemporaryArticle, submitEvidence } from '../../services/api';
+
 export default function SubmitEvidenceForm() {
   // Router instance for navigation after submission
   const router = useRouter();
@@ -113,38 +116,23 @@ export default function SubmitEvidenceForm() {
         throw new Error("Please select a claim");
       }
 
-      // Create FormData object for submission
-      const formPayload = new FormData();
+      // Create a temporary article first to get a valid MongoDB ObjectId
+      const articleId = await createTemporaryArticle();
       
-      // Add always required fields
-      formPayload.append('practiceId', formData.practiceId);
-      formPayload.append('claimId', formData.claimId);
-      formPayload.append('supportsClaim', String(formData.supportsClaim));
-
-      if (evidenceFile) {
-        // If file is uploaded add only the file
-        formPayload.append('file', evidenceFile);
-      } else {
-        // Validate and add manual input fields if no file
-        if (!formData.title) throw new Error("Please enter a title");
-        if (!formData.source) throw new Error("Please enter a source");
-        if (!formData.year) throw new Error("Please enter a year");
-
-        formPayload.append('title', formData.title);
-        formPayload.append('source', formData.source);
-        formPayload.append('year', String(formData.year));
-        if (formData.description) {
-          formPayload.append('description', formData.description);
-        }
-      }
-
-      // Submit to backend
-      const response = await fetch('http://localhost:3001/upload', {
-        method: 'POST',
-        body: formPayload,
-      });
-
-      const result = await response.json();
+      // Prepare evidence data with the real article ID
+      const evidenceData = {
+        articleId: articleId, // Use the real MongoDB ObjectId
+        practiceId: formData.practiceId,
+        claim: claims.find(c => c.id === formData.claimId)?.text,
+        supportsClaim: formData.supportsClaim,
+        title: formData.title || "Untitled", 
+        source: formData.source || "Unknown",
+        year: formData.year ? Number(formData.year) : new Date().getFullYear(),
+        description: formData.description || ""
+      };
+      
+      // Submit the evidence with the valid article ID
+      const result = await submitEvidence(evidenceData);
 
       if (result.success) {
         alert("Evidence submitted successfully!");
@@ -155,9 +143,7 @@ export default function SubmitEvidenceForm() {
     } catch (err) {
       console.error("Error submitting evidence:", err);
       setSubmitError(
-        err && typeof err === "object" && "message" in err
-          ? (err as { message: string }).message
-          : "An unknown error occurred"
+        err instanceof Error ? err.message : "An unknown error occurred"
       );
     } finally {
       setSubmitting(false);

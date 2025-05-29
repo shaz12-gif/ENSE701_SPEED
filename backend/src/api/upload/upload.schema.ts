@@ -37,6 +37,13 @@ export class uploadedfile extends Document {
   @Prop({ required: false })
   description?: string;
 
+  // New reference fields
+  @Prop({ required: false })
+  articleId?: string;
+
+  @Prop({ required: false })
+  evidenceId?: string;
+
   // File-specific properties (optional)
   @Prop({ required: false })
   filename?: string;

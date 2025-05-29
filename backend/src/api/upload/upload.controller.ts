@@ -8,6 +8,7 @@ import {
   Get,
   NotFoundException,
   Body,
+  Put,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -44,7 +45,7 @@ export class UploadController {
    * Handles evidence submission requests with optional file upload
    * Checks the fields
    * calls app.service.saveFile to save the evidence data
-   * returns a sucess or error message
+   * returns a success or error message
    */
   @Post()
   @UseInterceptors(FileInterceptor('file'))
@@ -63,7 +64,7 @@ export class UploadController {
         practiceId: String(evidenceData.practiceId),
         claimId: String(evidenceData.claimId),
         supportsClaim: String(evidenceData.supportsClaim) === 'true',
-        // If just a fule is uploaded these are optional
+        // If just a file is uploaded these are optional
         title: evidenceData.title || '',
         source: evidenceData.source || '',
         year: evidenceData.year
@@ -86,7 +87,7 @@ export class UploadController {
 
   /**
    * Retrieves a previously uploaded file by ID
-   * Dont need this yet, but will be used to display evidence
+   * Don't need this yet, but will be used to display evidence
    */
   @Get(':id')
   async getFile(@Param('id') id: string, @Res() res: Response) {
@@ -95,7 +96,7 @@ export class UploadController {
       throw new NotFoundException('File not found');
     }
 
-    // Only set headers if theres actual file data
+    // Only set headers if there's actual file data
     if (fileDoc.filename && (fileDoc.data || fileDoc.textData)) {
       res.set({
         'Content-Type': fileDoc.mimetype,
@@ -132,7 +133,93 @@ export class UploadController {
       return evidence;
     } catch (error) {
       console.error('Failed to fetch evidence:', error);
-      throw new NotFoundException('Evidence not found for this practice');
+      throw new NotFoundException(
+        error instanceof Error
+          ? error.message
+          : 'Evidence not found for this practice',
+      );
+    }
+  }
+
+  /**
+   * Links an uploaded file to an article or another evidence
+   * Expects either articleId or evidenceId in the request body
+   */
+  @Put(':id/link')
+  async linkFileToEntity(
+    @Param('id') id: string,
+    @Body() linkData: { articleId?: string; evidenceId?: string },
+  ) {
+    try {
+      if (linkData.articleId) {
+        const result = await this.uploadService.linkToArticle(
+          id,
+          linkData.articleId,
+        );
+        return {
+          success: true,
+          data: result,
+        };
+      } else if (linkData.evidenceId) {
+        const result = await this.uploadService.linkToEvidence(
+          id,
+          linkData.evidenceId,
+        );
+        return {
+          success: true,
+          data: result,
+        };
+      } else {
+        throw new Error('Either articleId or evidenceId is required');
+      }
+    } catch (error) {
+      console.error('Link error:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to link file',
+      };
+    }
+  }
+
+  /**
+   * Retrieves files linked to a specific article
+   */
+  @Get('article/:id')
+  async getFilesByArticle(@Param('id') articleId: string) {
+    try {
+      const files = await this.uploadService.findByArticleId(articleId);
+      return {
+        success: true,
+        data: files,
+      };
+    } catch (error) {
+      console.error('Failed to fetch files:', error);
+      throw new NotFoundException(
+        error instanceof Error
+          ? error.message
+          : 'Files not found for this article',
+      );
+    }
+  }
+
+  /**
+   * Retrieves files linked to a specific evidence
+   */
+  @Get('evidence/:id')
+  async getFilesByEvidence(@Param('id') evidenceId: string) {
+    try {
+      const files = await this.uploadService.findByEvidenceId(evidenceId);
+      return {
+        success: true,
+        data: files,
+      };
+    } catch (error) {
+      console.error('Failed to fetch files:', error);
+      throw new NotFoundException(
+        error instanceof Error
+          ? error.message
+          : 'Files not found for this evidence',
+      );
     }
   }
 }

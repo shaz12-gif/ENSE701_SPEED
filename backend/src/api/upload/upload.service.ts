@@ -116,4 +116,30 @@ export class UploadService {
   async findByPracticeId(practiceId: string) {
     return this.uploadedfileModel.find({ practiceId }).exec();
   }
+
+  async linkToArticle(
+    fileId: string,
+    articleId: string,
+  ): Promise<uploadedfile> {
+    return this.uploadedfileModel
+      .findByIdAndUpdate(fileId, { articleId }, { new: true })
+      .exec();
+  }
+
+  async linkToEvidence(
+    fileId: string,
+    evidenceId: string,
+  ): Promise<uploadedfile> {
+    return this.uploadedfileModel
+      .findByIdAndUpdate(fileId, { evidenceId }, { new: true })
+      .exec();
+  }
+
+  async findByArticleId(articleId: string): Promise<uploadedfile[]> {
+    return this.uploadedfileModel.find({ articleId }).exec();
+  }
+
+  async findByEvidenceId(evidenceId: string): Promise<uploadedfile[]> {
+    return this.uploadedfileModel.find({ evidenceId }).exec();
+  }
 }
