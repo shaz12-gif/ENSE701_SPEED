@@ -121,9 +121,9 @@ export default function SubmitEvidenceForm() {
       
       // Prepare evidence data with the real article ID
       const evidenceData = {
-        articleId: articleId, // Use the real MongoDB ObjectId
+        articleId: articleId,
         practiceId: formData.practiceId,
-        claim: claims.find(c => c.id === formData.claimId)?.text,
+        claim: claims.find(c => c.id === formData.claimId)?.text || "Unknown claim", // Add fallback
         supportsClaim: formData.supportsClaim,
         title: formData.title || "Untitled", 
         source: formData.source || "Unknown",

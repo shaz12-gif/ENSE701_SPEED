@@ -5,16 +5,40 @@
 export const getArticles = async (params = {}) => {
   try {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`http://localhost:3001/api/articles?${queryString}`);
-    if (!response.ok) throw new Error('Failed to fetch articles');
-    return await response.json();
+    const url = `http://localhost:3001/api/articles${queryString ? `?${queryString}` : ''}`;
+    console.log('Fetching articles from:', url);
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
+      throw new Error(`Failed to fetch articles: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Articles data received:', data);
+    
+    // Handle different response formats
+    if (data.success === false) {
+      return data; // Already in the expected format with success: false
+    }
+    
+    // If articles are directly in data or in data.data
+    const articles = Array.isArray(data) ? data : (data.data || []);
+    
+    return { 
+      success: true, 
+      data: articles,
+      message: 'Articles fetched successfully'
+    };
   } catch (error) {
     console.error("Error fetching articles:", error);
-    if (error instanceof Error) {
-      return { success: false, message: error.message };
-    } else {
-      return { success: false, message: String(error) };
-    }
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to fetch articles', 
+      data: []
+    };
   }
 };
 
@@ -54,7 +78,7 @@ export const getEvidence = async (params = {}) => {
   }
 };
 
-export const submitEvidence = async (evidenceData: { articleId: string; practiceId: string; claim: string | undefined; supportsClaim: boolean; title: string; source: string; year: number; description: string; }) => {
+export const submitEvidence = async (evidenceData: { articleId: string; practiceId: string; claim: string; supportsClaim: boolean; title: string; source: string; year: number; description?: string; }) => {
   try {
     console.log('Submitting evidence:', evidenceData);
     
@@ -135,7 +159,6 @@ export const createTemporaryArticle = async () => {
         authors: "System Generated",
         journal: "N/A",
         year: new Date().getFullYear(),
-        // Don't set status here, let the backend handle the default 'pending' status
       })
     });
     
@@ -148,20 +171,177 @@ export const createTemporaryArticle = async () => {
     const result = await response.json();
     console.log('Temporary article created:', result);
     
-    // Check the structure of the result and handle different response formats
-    if (result.data && result.data._id) {
-      return result.data._id; // NestJS typical response format
-    } else if (result._id) {
-      return result._id; // Direct document response
-    } else if (result.id) {
-      return result.id; // Some APIs use 'id' instead of '_id'
+    // Return the ID directly if it's in the expected format
+    if (result._id) {
+      return result._id;
+    } else if (result.data && result.data._id) {
+      return result.data._id;
     } else {
-      // If we can't find an ID, log the response and throw an error
       console.error('Unexpected API response format:', result);
-      throw new Error('Could not retrieve article ID from response');
+      throw new Error('Invalid API response format');
     }
   } catch (error) {
-    console.error("Error creating temporary article:", error);
+    console.error('Failed to create temporary article:', error);
     throw error;
   }
 };
+
+/**
+ * Fetches all practices from the API
+ */
+export async function getPractices() {
+  try {
+    const response = await fetch('/api/practices');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { success: true, data: data.data || data };
+  } catch (error) {
+    console.error("Error fetching practices:", error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to fetch practices', 
+      data: [] 
+    };
+  }
+}
+
+/**
+ * Searches for evidence based on provided filters
+ * @param filters Object containing filter criteria
+ */
+export async function searchEvidence(filters?: Record<string, string>) {
+  try {
+    let url = '/api/evidence';
+    
+    // Add query parameters if filters are provided
+    if (filters && Object.keys(filters).length > 0) {
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) queryParams.append(key, value);
+      });
+      url += `?${queryParams.toString()}`;
+    }
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { success: true, data: data.data || data };
+  } catch (error) {
+    console.error("Error searching evidence:", error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to search evidence', 
+      data: [] 
+    };
+  }
+}
+
+/**
+ * Fetches all approved articles from the API
+ */
+export async function getApprovedArticles() {
+  try {
+    // This is the same as getArticles with a status filter
+    const response = await fetch('/api/articles?status=approved');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { success: true, data: data.data || data };
+  } catch (error) {
+    console.error("Error fetching approved articles:", error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to fetch approved articles', 
+      data: [] 
+    };
+  }
+}
+
+/**
+ * Approves a pending article
+ * @param articleId The ID of the article to approve
+ * @param moderatorId The ID of the moderator performing the action
+ * @param notes Optional notes from the moderator
+ */
+export async function approveArticle(articleId: string, moderatorId: string, notes: string = '') {
+  try {
+    const response = await fetch(`/api/articles/${articleId}/approve`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        moderatorId,
+        notes
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.data || data };
+  } catch (error) {
+    console.error("Error approving article:", error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to approve article', 
+      data: null 
+    };
+  }
+}
+
+/**
+ * Rejects a pending article
+ * @param articleId The ID of the article to reject
+ * @param moderatorId The ID of the moderator performing the action
+ * @param notes Reason for rejection (required)
+ */
+export async function rejectArticle(articleId: string, moderatorId: string, notes: string) {
+  try {
+    if (!notes.trim()) {
+      return {
+        success: false,
+        message: 'Rejection reason is required',
+        data: null
+      };
+    }
+    
+    const response = await fetch(`/api/articles/${articleId}/reject`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        moderatorId,
+        notes
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.data || data };
+  } catch (error) {
+    console.error("Error rejecting article:", error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to reject article', 
+      data: null 
+    };
+  }
+}

@@ -20,8 +20,14 @@ export class ArticleService {
   }
 
   async findAll(status?: ArticleStatus): Promise<Article[]> {
+    console.log('Finding articles with status:', status || 'all');
     const query = status ? { status } : {};
-    return this.articleModel.find(query).sort({ createdAt: -1 }).exec();
+    const result = await this.articleModel
+      .find(query)
+      .sort({ createdAt: -1 })
+      .exec();
+    console.log(`Found ${result.length} articles`);
+    return result;
   }
 
   async findOne(id: string): Promise<Article> {

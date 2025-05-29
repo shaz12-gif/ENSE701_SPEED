@@ -1,34 +1,34 @@
 import './globals.css';
-import type { ReactNode } from 'react';
-import Link from 'next/link';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import MainNavigation from '@/components/navigation/MainNavigation';
 
-export const metadata = {
-  title: 'SPEED Database - Software Engineering Evidence',
-  description: 'A database of software engineering practices and evidence',
+const inter = Inter({ subsets: ['latin'] });
+
+export const metadata: Metadata = {
+  title: 'SPEED - Software Practice Empirical Evidence Database',
+  description: 'A database of software engineering practices and empirical evidence',
 };
 
-type RootLayoutProps = {
-  children: ReactNode;
-};
-
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <head />
-      <body>
-        <div className="light-container">
-          <div className="light light1"></div>
-          <div className="light light2"></div>
-        </div>
-        <nav className="navbar">
-          <ul>
-            <li><Link href="/">Home</Link></li>
-            <li><Link href="/practices">Practices</Link></li>
-            <li><Link href="/submit">Submit Evidence</Link></li>
-          </ul>
-        </nav>
-        {children}
-        <footer className="footer">© 2025 SPEED Database</footer>
+      <body className={inter.className}>
+        <MainNavigation />
+        <main>
+          {children}
+        </main>
+        <footer className="bg-gray-100 border-t mt-10 py-6">
+          <div className="container mx-auto px-4">
+            <p className="text-center text-gray-600 text-sm">
+              © {new Date().getFullYear()} SPEED Database. All rights reserved.
+            </p>
+          </div>
+        </footer>
       </body>
     </html>
   );
