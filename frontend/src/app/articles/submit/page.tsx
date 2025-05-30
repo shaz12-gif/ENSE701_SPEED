@@ -16,7 +16,7 @@ export default function SubmitArticlePage() {
   const [error, setError] = useState<string | null>(null);
   const [resetForm, setResetForm] = useState(false);
 
-  const handleSubmit = async (formData: ArticleFormData) => {
+  const handleSubmit = async (formData: ArticleFormData | FormData) => {
     setIsSubmitting(true);
     setError(null);
     
@@ -59,11 +59,19 @@ export default function SubmitArticlePage() {
         </div>
       )}
       
-      <ArticleForm 
-        onSubmit={handleSubmit} 
-        isSubmitting={isSubmitting}
-        resetForm={resetForm}
-      />
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold mb-4">Article Details</h2>
+        <p className="text-gray-600 mb-6">
+          Submit research articles for inclusion in the SPEED database. You can either upload a BibTeX file 
+          or manually enter article details below. The submission will be reviewed by moderators before being added.
+        </p>
+        
+        <ArticleForm 
+          onSubmit={handleSubmit} 
+          isSubmitting={isSubmitting}
+          resetForm={resetForm}
+        />
+      </div>
     </div>
   );
 }

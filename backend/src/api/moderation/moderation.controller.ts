@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Controller, Get, Put, Param, Body } from '@nestjs/common';
 import { ModerationService } from './moderation.service';
 

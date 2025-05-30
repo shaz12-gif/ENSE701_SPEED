@@ -12,7 +12,7 @@ export interface ArticleFormData {
 }
 
 interface ArticleFormProps {
-  onSubmit: (data: ArticleFormData) => void;
+  onSubmit: (data: ArticleFormData | FormData) => void;
   isSubmitting: boolean;
   resetForm?: boolean;
 }
@@ -32,6 +32,9 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
   });
   
   const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof ArticleFormData, string>>>({});
+  const [bibFile, setBibFile] = useState<File | null>(null);
+  const [isParsingBib, setIsParsingBib] = useState(false);
+  const [bibParseError, setBibParseError] = useState<string | null>(null);
 
   // Reset form when resetForm prop changes to true
   useEffect(() => {
@@ -47,6 +50,8 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
         doi: '',
       });
       setValidationErrors({});
+      setBibFile(null);
+      setBibParseError(null);
     }
   }, [resetForm]);
 
@@ -66,17 +71,108 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
     }
   };
 
+  const handleBibFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      setBibFile(null);
+      return;
+    }
+    
+    const file = e.target.files[0];
+    setBibFile(file);
+    setBibParseError(null);
+    
+    if (file.name.endsWith('.bib')) {
+      setIsParsingBib(true);
+      try {
+        const fileText = await file.text();
+        const parsedBibData = parseBibTeX(fileText);
+        
+        if (parsedBibData) {
+          setFormData({
+            title: parsedBibData.title || '',
+            authors: parsedBibData.authors || '',
+            journal: parsedBibData.journal || parsedBibData.booktitle || '',
+            year: parsedBibData.year ? Number(parsedBibData.year) : currentYear,
+            volume: parsedBibData.volume || '',
+            number: parsedBibData.number || '',
+            pages: parsedBibData.pages || '',
+            doi: parsedBibData.doi || '',
+          });
+        } else {
+          setBibParseError('Could not parse the BibTeX file. Please check the format.');
+        }
+      } catch (err) {
+        console.error('Error parsing BibTeX:', err);
+        setBibParseError('Failed to parse the BibTeX file. Please try again or enter details manually.');
+      } finally {
+        setIsParsingBib(false);
+      }
+    }
+  };
+
+  // Simple BibTeX parser function
+  const parseBibTeX = (bibText: string) => {
+    try {
+      // Match the first entry in the BibTeX file
+      const entryMatch = bibText.match(/@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}/);
+      if (!entryMatch) return null;
+      
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const entryType = entryMatch[1]; // article, inproceedings, etc.
+      const entries: Record<string, string> = {};
+      
+      // Extract all key-value pairs
+      const fieldsText = entryMatch[3];
+      const fieldMatches = [...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)(?=\},|\}$)/g)];
+      
+      fieldMatches.forEach(match => {
+        const key = match[1].toLowerCase();
+        let value = match[2].trim();
+        
+        // Handle the authors field specially to convert BibTeX format to a readable format
+        if (key === 'author') {
+          // Convert BibTeX author format to a readable format
+          value = value
+            .split(' and ')
+            .map(author => author.trim())
+            .join(', ');
+        }
+        
+        entries[key] = value;
+      });
+      
+      // Map common BibTeX fields to our form fields
+      return {
+        title: entries.title || '',
+        authors: entries.author || '',
+        journal: entries.journal || '',
+        booktitle: entries.booktitle || '',
+        year: entries.year || '',
+        volume: entries.volume || '',
+        number: entries.number || '',
+        pages: entries.pages || '',
+        doi: entries.doi || '',
+      };
+    } catch (error) {
+      console.error('Error parsing BibTeX:', error);
+      return null;
+    }
+  };
+
   const validate = (): boolean => {
     const errors: Partial<Record<keyof ArticleFormData, string>> = {};
     
-    if (!formData.title.trim()) errors.title = 'Title is required';
-    if (!formData.authors.trim()) errors.authors = 'Authors are required';
-    if (!formData.journal.trim()) errors.journal = 'Journal or conference name is required';
-    
-    if (!formData.year) {
-      errors.year = 'Year is required';
-    } else if (formData.year < 1900 || formData.year > currentYear + 1) {
-      errors.year = `Year must be between 1900 and ${currentYear + 1}`;
+    // Only validate required fields if no BibTeX file is provided
+    if (!bibFile) {
+      if (!formData.title.trim()) errors.title = 'Title is required';
+      if (!formData.authors.trim()) errors.authors = 'Authors are required';
+      if (!formData.journal.trim()) errors.journal = 'Journal or conference name is required';
+      
+      if (!formData.year) {
+        errors.year = 'Year is required';
+      } else if (formData.year < 1900 || formData.year > currentYear + 1) {
+        errors.year = `Year must be between 1900 and ${currentYear + 1}`;
+      }
     }
     
     if (formData.doi && !/^10\.\d{4,9}\/[-.;()\/:A-Z0-9]+$/i.test(formData.doi)) {
@@ -87,19 +183,73 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    // For BibTeX file upload, validation rules are different
+    if (bibFile) {
+      // If a BibTeX file is provided, create FormData with just the file
+      const formDataWithFile = new FormData();
+      formDataWithFile.append('bibFile', bibFile);
+      
+      // Explicitly indicate this is a BibTeX-only submission
+      formDataWithFile.append('submissionType', 'bibtex');
+      
+      // Call onSubmit with just the file data
+      console.log("Submitting BibTeX file:", bibFile.name);
+      onSubmit(formDataWithFile);
+      return;
+    }
+    
+    // Standard form validation for manual entry
     if (validate()) {
+      console.log("Submitting manual form data");
       onSubmit(formData);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
+      {/* BibTeX File Upload Section */}
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+        <h3 className="text-lg font-medium text-blue-800 mb-2">Quick Import from BibTeX</h3>
+        <p className="text-sm text-blue-600 mb-4">
+          Upload a BibTeX (.bib) file to automatically fill in article details.
+        </p>
+        
+        <div className="form-group">
+          <label htmlFor="bibFile" className="block text-sm font-medium mb-1">
+            BibTeX File
+          </label>
+          <input
+            type="file"
+            id="bibFile"
+            name="bibFile"
+            accept=".bib"
+            onChange={handleBibFileChange}
+            className="w-full border border-gray-300 rounded-md py-2 px-3"
+            disabled={isSubmitting || isParsingBib}
+          />
+          {isParsingBib && (
+            <p className="text-blue-500 text-sm mt-1">Parsing BibTeX file...</p>
+          )}
+          {bibParseError && (
+            <p className="text-red-500 text-sm mt-1">{bibParseError}</p>
+          )}
+          {bibFile && !bibParseError && (
+            <p className="text-green-500 text-sm mt-1">
+              File loaded: {bibFile.name}
+            </p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            {bibFile ? 'You can still edit the fields below if needed.' : 'Or fill in the details manually below.'}
+          </p>
+        </div>
+      </div>
+
       <div className="form-group">
         <label htmlFor="title" className="block text-sm font-medium mb-1">
-          Title <span className="text-red-500">*</span>
+          Title {!bibFile && <span className="text-red-500">*</span>}
         </label>
         <textarea
           id="title"
@@ -109,7 +259,7 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
           rows={2}
           className={`w-full border rounded-md py-2 px-3 ${validationErrors.title ? 'border-red-500' : 'border-gray-300'}`}
           placeholder="Enter article title"
-          required
+          required={!bibFile}
         />
         {validationErrors.title && (
           <p className="text-red-500 text-sm mt-1">{validationErrors.title}</p>
@@ -118,7 +268,7 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
 
       <div className="form-group">
         <label htmlFor="authors" className="block text-sm font-medium mb-1">
-          Authors <span className="text-red-500">*</span>
+          Authors {!bibFile && <span className="text-red-500">*</span>}
         </label>
         <input
           type="text"
@@ -128,7 +278,7 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
           onChange={handleChange}
           className={`w-full border rounded-md py-2 px-3 ${validationErrors.authors ? 'border-red-500' : 'border-gray-300'}`}
           placeholder="e.g., Smith, J., Johnson, A."
-          required
+          required={!bibFile}
         />
         {validationErrors.authors && (
           <p className="text-red-500 text-sm mt-1">{validationErrors.authors}</p>
@@ -137,7 +287,7 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
 
       <div className="form-group">
         <label htmlFor="journal" className="block text-sm font-medium mb-1">
-          Journal/Conference <span className="text-red-500">*</span>
+          Journal/Conference {!bibFile && <span className="text-red-500">*</span>}
         </label>
         <input
           type="text"
@@ -147,7 +297,7 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
           onChange={handleChange}
           className={`w-full border rounded-md py-2 px-3 ${validationErrors.journal ? 'border-red-500' : 'border-gray-300'}`}
           placeholder="e.g., IEEE Transactions on Software Engineering"
-          required
+          required={!bibFile}
         />
         {validationErrors.journal && (
           <p className="text-red-500 text-sm mt-1">{validationErrors.journal}</p>
@@ -157,7 +307,7 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="form-group">
           <label htmlFor="year" className="block text-sm font-medium mb-1">
-            Year <span className="text-red-500">*</span>
+            Year {!bibFile && <span className="text-red-500">*</span>}
           </label>
           <input
             type="number"
@@ -168,7 +318,7 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
             min="1900"
             max={currentYear + 1}
             className={`w-full border rounded-md py-2 px-3 ${validationErrors.year ? 'border-red-500' : 'border-gray-300'}`}
-            required
+            required={!bibFile}
           />
           {validationErrors.year && (
             <p className="text-red-500 text-sm mt-1">{validationErrors.year}</p>
@@ -244,10 +394,10 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
       <div className="form-actions pt-4">
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isParsingBib}
           className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md disabled:opacity-50"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Article'}
+          {isSubmitting ? 'Submitting...' : (isParsingBib ? 'Parsing File...' : 'Submit Article')}
         </button>
       </div>
     </form>

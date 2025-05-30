@@ -1,13 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { config } from 'dotenv';
-config();
 
 export type ArticleStatus = 'pending' | 'approved' | 'rejected';
 
 @Schema({
-  collection: process.env.ARTICLES_COLLECTION || 'articles',
   timestamps: true,
+  collection: process.env.ARTICLES_COLLECTION || 'articles',
 })
 export class Article extends Document {
   @Prop({ required: true })
@@ -34,20 +32,24 @@ export class Article extends Document {
   @Prop()
   doi?: string;
 
-  @Prop({ default: 'anonymous' })
-  submittedBy?: string;
-
-  @Prop({ default: 'pending', enum: ['pending', 'approved', 'rejected'] })
+  @Prop({
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  })
   status: ArticleStatus;
 
-  @Prop()
-  moderatorId?: string;
+  @Prop({ type: String })
+  bibTeXSource?: string; // Store the raw BibTeX content
 
   @Prop()
-  moderationDate?: Date;
-
-  @Prop()
-  moderationNotes?: string;
+  moderationComments?: string;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);
+
+// Log the collection name on schema creation
+console.log(
+  'Article schema collection name:',
+  process.env.ARTICLES_COLLECTION || 'articles',
+);

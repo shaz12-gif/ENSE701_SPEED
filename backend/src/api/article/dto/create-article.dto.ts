@@ -10,39 +10,39 @@ import {
 export class CreateArticleDto {
   @IsNotEmpty()
   @IsString()
-  title: string;
+  readonly title: string;
 
   @IsNotEmpty()
   @IsString()
-  authors: string;
+  readonly authors: string;
 
   @IsNotEmpty()
   @IsString()
-  journal: string;
+  readonly journal: string;
 
   @IsNotEmpty()
   @IsNumber()
   @Min(1900)
   @Max(2100)
-  year: number;
+  readonly year: number;
 
   @IsOptional()
   @IsString()
-  volume?: string;
+  readonly volume?: string;
 
   @IsOptional()
   @IsString()
-  number?: string;
+  readonly number?: string;
 
   @IsOptional()
   @IsString()
-  pages?: string;
+  readonly pages?: string;
 
   @IsOptional()
   @IsString()
-  doi?: string;
+  readonly doi?: string;
 
   @IsOptional()
   @IsString()
-  submittedBy?: string;
+  readonly bibTeXSource?: string;
 }

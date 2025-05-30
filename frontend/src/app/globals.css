@@ -2,6 +2,9 @@
   Author: Andrew Koves
   ID: 20126313
 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Base styles for the entire application */
 body {
@@ -361,6 +364,43 @@ a {
   100% {
     transform: translate(-50px, 100px) scale(1);
   }
+}
+
+/* Navigation links container */
+.nav-links-container {
+  display: flex;
+  gap: 30px;
+  flex-grow: 1;
+  padding-left: 30px;
+}
+
+/* Individual navigation link styling */
+.nav-link {
+  padding: 12px 24px;
+  font-size: 18px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+/* Active navigation link */
+.nav-link-active {
+  background-color: rgba(44,93,149,0.4);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Inactive navigation link */
+.nav-link-inactive {
+  background-color: rgba(15,28,47,0.5);
+  color: #e1e8f0;
+}
+
+.nav-link-inactive:hover {
+  background-color: rgba(44,93,149,0.25);
+  color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 /* Responsive design adjustments */

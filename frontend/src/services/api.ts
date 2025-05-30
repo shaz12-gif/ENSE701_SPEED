@@ -42,15 +42,77 @@ export const getArticles = async (params = {}) => {
   }
 };
 
+// Updated submitArticle function with better error handling
 export const submitArticle = async (articleData: any) => {
   try {
+    // Check if articleData is FormData (with file) or plain object
+    const isFormData = articleData instanceof FormData;
+    
+    // Add console logs to debug
+    console.log('Submitting article to:', 'http://localhost:3001/api/articles');
+    console.log('With data type:', isFormData ? 'FormData' : 'JSON');
+    
+    if (isFormData) {
+      // Log the FormData contents for debugging
+      console.log("FormData contents:");
+      for (const pair of articleData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+    }
+    
+    const headers: Record<string, string> = {};
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+    
     const response = await fetch('http://localhost:3001/api/articles', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(articleData)
+      headers,
+      body: isFormData ? articleData : JSON.stringify(articleData),
+      credentials: 'include'
     });
-    if (!response.ok) throw new Error('Failed to submit article');
-    return await response.json();
+    
+    // Better error handling
+    if (!response.ok) {
+      try {
+        // Try to get error details from the response
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          console.error('Server returned error JSON:', errorData);
+          
+          let errorMessage = 'Unknown server error';
+          
+          // Extract error message with fallbacks for different structures
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (typeof errorData === 'string') {
+            errorMessage = errorData;
+          } else {
+            errorMessage = `Server error: ${response.status} (${JSON.stringify(errorData)})`;
+          }
+          
+          throw new Error(errorMessage);
+        } else {
+          const errorText = await response.text();
+          console.error('Server returned non-JSON error:', errorText);
+          throw new Error(`Server error (${response.status}): ${errorText.substring(0, 100)}...`);
+        }
+      } catch (parseError) {
+        console.error('Error parsing error response:', parseError);
+        throw new Error(`Server error (${response.status}): Could not parse error details`);
+      }
+    }
+    
+    const data = await response.json();
+    return { 
+      success: true, 
+      data: data.data, 
+      message: data.message || 'Article submitted successfully' 
+    };
   } catch (error) {
     console.error("Error submitting article:", error);
     if (error instanceof Error) {

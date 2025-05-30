@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
-import { UploadModule } from './api/upload/upload.module';
+import { MongooseModule } from '@nestjs/mongoose';
 import { ArticleModule } from './api/article/article.module';
 import { EvidenceModule } from './api/evidence/evidence.module';
 import { ModerationModule } from './api/moderation/moderation.module';
@@ -13,18 +9,19 @@ import { SearchModule } from './api/search/search.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.DB_URI, {
-      dbName: process.env.DB_NAME,
+    ConfigModule.forRoot({
+      isGlobal: true, // Make config globally available
     }),
-    UploadModule,
+    MongooseModule.forRoot(process.env.DB_URI, {
+      dbName: process.env.DB_NAME, // Use the DB_NAME environment variable
+    }),
     ArticleModule,
     EvidenceModule,
     ModerationModule,
     RatingModule,
     SearchModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-import './globals.css';
+import '@/app/globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import MainNavigation from '@/components/navigation/MainNavigation';
@@ -18,13 +18,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <div className="light-container">
+          <div className="light light1"></div>
+          <div className="light light2"></div>
+        </div>
+        
+        {/* Navigation */}
         <MainNavigation />
-        <main>
-          {children}
+        
+        {/* Main Content with proper spacing */}
+        <main className="min-h-screen py-8 px-4">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
-        <footer className="bg-gray-100 border-t mt-10 py-6">
-          <div className="container mx-auto px-4">
-            <p className="text-center text-gray-600 text-sm">
+        
+        {/* Footer */}
+        <footer className="bg-[#0b1625] py-6">
+          <div className="max-w-7xl mx-auto px-4">
+            <p className="text-center text-[#7a94b7] text-sm">
               © {new Date().getFullYear()} SPEED Database. All rights reserved.
             </p>
           </div>
