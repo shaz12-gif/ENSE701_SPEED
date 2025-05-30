@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import MainNavigation from '@/components/navigation/MainNavigation';
 
+// Configure Inter font with Latin subset
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -10,10 +11,14 @@ export const metadata: Metadata = {
   description: 'A database of software engineering practices and empirical evidence',
 };
 
+/**
+ * RootLayout component - Provides the base layout structure for all pages
+ * Includes navigation, main content area, and footer
+ */
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
@@ -34,14 +39,25 @@ export default function RootLayout({
         </main>
         
         {/* Footer */}
-        <footer className="bg-[#0b1625] py-6">
-          <div className="max-w-7xl mx-auto px-4">
-            <p className="text-center text-[#7a94b7] text-sm">
-              © {new Date().getFullYear()} SPEED Database. All rights reserved.
-            </p>
-          </div>
-        </footer>
+        <Footer />
       </body>
     </html>
+  );
+}
+
+/**
+ * Footer component - Displays the site footer with copyright information
+ */
+function Footer() {
+  const currentYear = new Date().getFullYear();
+  
+  return (
+    <footer className="bg-[#0b1625] py-6">
+      <div className="max-w-7xl mx-auto px-4">
+        <p className="text-center text-[#7a94b7] text-sm">
+          © {currentYear} SPEED Database. All rights reserved.
+        </p>
+      </div>
+    </footer>
   );
 }

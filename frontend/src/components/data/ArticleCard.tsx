@@ -1,30 +1,43 @@
+/**
+ * Article interface defining the structure of article data
+ */
 interface Article {
   _id: string;
   title: string;
   authors: string;
   journal: string;
   year: number;
-  volume?: string;
-  number?: string;
-  pages?: string;
   doi?: string;
-  submittedBy?: string;
-  createdAt: string;
-  status?: 'pending' | 'approved' | 'rejected';
 }
 
+/**
+ * Action button configuration for ArticleCard
+ */
+interface ActionButton {
+  label: string;
+  onClick: () => void;
+  className?: string;
+  disabled?: boolean;
+}
+
+/**
+ * ArticleCard props
+ */
 interface ArticleCardProps {
   article: Article;
-  actions?: Array<{
-    label: string;
-    onClick: () => void;
-    className?: string;
-  }>;
+  actions?: ActionButton[];
 }
 
+/**
+ * ArticleCard component - Displays article information in a card format
+ * with optional action buttons
+ */
 export default function ArticleCard({ article, actions }: ArticleCardProps) {
-  // Format the creation date
-  const formatDate = (dateString: string) => {
+  /**
+   * Formats a date string to a locale-formatted date
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -36,31 +49,46 @@ export default function ArticleCard({ article, actions }: ArticleCardProps) {
   };
 
   return (
-    <div className="bg-white rounded shadow-md p-4 border border-gray-200">
-      <h3 className="text-lg font-semibold mb-2">{article.title}</h3>
-      <p className="text-sm text-gray-600 mb-2">{article.authors}</p>
-      <p className="text-sm mb-4">
-        {article.journal}, {article.year}
-        {article.volume && `, Volume ${article.volume}`}
-        {article.number && `, Issue ${article.number}`}
-        {article.pages && `, Pages ${article.pages}`}
-      </p>
-      {article.doi && (
-        <p className="text-sm text-gray-600 mb-1">
-          <span className="font-semibold">DOI:</span> {article.doi}
-        </p>
-      )}
-      <div className="text-xs text-gray-500 mt-2">
-        <p>Submitted by: {article.submittedBy || 'Anonymous'}</p>
-        <p>Date: {formatDate(article.createdAt)}</p>
+    <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
+      <h3 className="text-lg font-semibold text-gray-800 mb-2">{article.title}</h3>
+      <p className="text-sm text-gray-600 mb-4">{article.authors}</p>
+      
+      {/* Article content */}
+      <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+        <div>
+          <span className="text-gray-500">Journal: </span>
+          <span className="font-medium">{article.journal || 'N/A'}</span>
+        </div>
+        <div>
+          <span className="text-gray-500">Year: </span>
+          <span className="font-medium">{article.year}</span>
+        </div>
+        {article.doi && (
+          <div className="col-span-2">
+            <span className="text-gray-500">DOI: </span>
+            <a 
+              href={article.doi.startsWith('http') ? article.doi : `https://doi.org/${article.doi}`}
+              target="_blank"
+              rel="noopener noreferrer" 
+              className="text-blue-600 hover:underline"
+            >
+              {article.doi}
+            </a>
+          </div>
+        )}
       </div>
+      
+      {/* Action buttons */}
       {actions && actions.length > 0 && (
-        <div className="flex space-x-2 mt-4">
+        <div className="flex justify-end space-x-2 mt-4">
           {actions.map((action, index) => (
             <button
               key={index}
               onClick={action.onClick}
-              className={`px-4 py-2 text-white rounded text-sm ${action.className || 'bg-blue-600 hover:bg-blue-700'}`}
+              disabled={action.disabled}
+              className={`px-3 py-1 text-white rounded ${
+                action.className || 'bg-blue-500 hover:bg-blue-600'
+              } ${action.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {action.label}
             </button>

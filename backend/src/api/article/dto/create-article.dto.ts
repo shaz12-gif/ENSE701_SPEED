@@ -7,42 +7,41 @@ import {
   Max,
 } from 'class-validator';
 
+/**
+ * Data transfer object for creating a new article
+ */
 export class CreateArticleDto {
   @IsNotEmpty()
   @IsString()
-  readonly title: string;
+  title: string;
 
   @IsNotEmpty()
   @IsString()
-  readonly authors: string;
+  authors: string;
 
   @IsNotEmpty()
   @IsString()
-  readonly journal: string;
+  journal: string;
 
   @IsNotEmpty()
   @IsNumber()
   @Min(1900)
-  @Max(2100)
-  readonly year: number;
+  @Max(new Date().getFullYear() + 1) // Allow current year +1 for pre-prints
+  year: number;
 
   @IsOptional()
   @IsString()
-  readonly volume?: string;
+  doi?: string;
 
   @IsOptional()
   @IsString()
-  readonly number?: string;
+  url?: string;
 
   @IsOptional()
   @IsString()
-  readonly pages?: string;
+  abstract?: string;
 
   @IsOptional()
   @IsString()
-  readonly doi?: string;
-
-  @IsOptional()
-  @IsString()
-  readonly bibTeXSource?: string;
+  submittedBy?: string;
 }

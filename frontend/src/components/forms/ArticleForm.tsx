@@ -211,7 +211,7 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
       {/* BibTeX File Upload Section */}
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+      <div className="">
         <h3 className="text-lg font-medium text-blue-800 mb-2">Quick Import from BibTeX</h3>
         <p className="text-sm text-blue-600 mb-4">
           Upload a BibTeX (.bib) file to automatically fill in article details.

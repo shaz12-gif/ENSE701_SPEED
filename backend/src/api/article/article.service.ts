@@ -1,32 +1,30 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Article } from './article.schema';
+import { Article, ArticleDocument, ArticleStatus } from './article.schema';
 import { CreateArticleDto } from './dto/create-article.dto';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ModerateArticleDto } from './dto/moderate-article.dto';
-import { ArticleStatus } from './article.schema';
 
 @Injectable()
 export class ArticleService {
-  moderate(id: string, moderateDto: ModerateArticleDto) {
-    throw new Error('Method not implemented.');
-  }
   constructor(
-    @InjectModel(Article.name)
-    private articleModel: Model<Article>,
+    @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
   ) {}
 
   async create(createArticleDto: CreateArticleDto): Promise<Article> {
     try {
-      const createdArticle = new this.articleModel({
+      const newArticle = new this.articleModel({
         ...createArticleDto,
-        status: 'pending',
+        status: ArticleStatus.PENDING,
       });
-      return await createdArticle.save();
+      return await newArticle.save();
     } catch (error) {
       console.error('Error creating article:', error);
       throw new BadRequestException(
@@ -240,5 +238,34 @@ export class ArticleService {
 
   async findByIds(ids: string[]): Promise<Article[]> {
     return this.articleModel.find({ _id: { $in: ids } }).exec();
+  }
+
+  // Add or update this method in your ArticleService
+  async moderate(id: string, moderateDto: ModerateArticleDto) {
+    try {
+      console.log(
+        `ArticleService.moderate: Updating article ${id} to status ${moderateDto.status}`,
+      );
+
+      const article = await this.articleModel.findById(id);
+      if (!article) {
+        throw new NotFoundException(`Article with ID ${id} not found`);
+      }
+
+      // Update the article status
+      article.status = moderateDto.status;
+      if (moderateDto.moderationNotes) {
+        article.moderationComments = moderateDto.moderationNotes;
+      }
+
+      // Save the updated article
+      const updatedArticle = await article.save();
+      console.log(`Article ${id} status updated to ${moderateDto.status}`);
+
+      return updatedArticle;
+    } catch (error) {
+      console.error(`Error moderating article ${id}:`, error);
+      throw error;
+    }
   }
 }

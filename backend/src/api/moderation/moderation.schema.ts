@@ -1,19 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as mongoose from 'mongoose';
 
+/**
+ * Moderation document type
+ */
+export type ModerationDocument = Moderation & Document;
+
+/**
+ * Moderation schema definition
+ */
 @Schema({ timestamps: true })
-export class Moderation extends Document {
-  @Prop({ required: true })
-  articleId: string; // ID of article being moderated
+export class Moderation {
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+  articleId: mongoose.Schema.Types.ObjectId;
 
   @Prop({ required: true })
-  moderatorId: string; // Who approved/rejected
+  moderatorId: string;
 
-  @Prop({ required: true, enum: ['pending', 'approved', 'rejected'] })
-  action: string; // Action taken on the article
+  @Prop({ required: true, enum: ['approved', 'rejected'] })
+  action: string;
 
-  @Prop()
-  notes?: string; // Optional notes from the moderator
+  @Prop({ type: String })
+  notes?: string;
 }
 
 export const ModerationSchema = SchemaFactory.createForClass(Moderation);

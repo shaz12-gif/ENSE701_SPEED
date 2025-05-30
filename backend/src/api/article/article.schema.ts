@@ -1,13 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type ArticleStatus = 'pending' | 'approved' | 'rejected';
+/**
+ * Enum for article status
+ */
+export enum ArticleStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
 
+/**
+ * Article document type
+ */
+export type ArticleDocument = Article & Document;
+
+/**
+ * Article schema definition
+ */
 @Schema({
   timestamps: true,
   collection: process.env.ARTICLES_COLLECTION || 'articles',
 })
-export class Article extends Document {
+export class Article {
   @Prop({ required: true })
   title: string;
 
@@ -20,33 +35,37 @@ export class Article extends Document {
   @Prop({ required: true })
   year: number;
 
-  @Prop()
-  volume?: string;
-
-  @Prop()
-  number?: string;
-
-  @Prop()
-  pages?: string;
-
-  @Prop()
+  @Prop({ type: String, default: null })
   doi?: string;
+
+  @Prop({ type: String, default: null })
+  url?: string;
+
+  @Prop({ type: String, default: null })
+  abstract?: string;
 
   @Prop({
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending',
+    enum: Object.values(ArticleStatus),
+    default: ArticleStatus.PENDING,
   })
   status: ArticleStatus;
 
-  @Prop({ type: String })
-  bibTeXSource?: string; // Store the raw BibTeX content
+  @Prop({ required: true, default: 'anonymous' })
+  submittedBy: string;
 
-  @Prop()
+  @Prop({ type: String, default: null })
   moderationComments?: string;
+
+  @Prop({ type: Date, default: null })
+  moderatedAt?: Date;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);
+
+// Add any indexes for performance
+ArticleSchema.index({ title: 1 });
+ArticleSchema.index({ status: 1 });
 
 // Log the collection name on schema creation
 console.log(

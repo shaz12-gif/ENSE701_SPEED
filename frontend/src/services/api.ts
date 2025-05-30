@@ -249,6 +249,15 @@ export const createTemporaryArticle = async () => {
 };
 
 /**
+ * Response interface for standardized API responses
+ */
+interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
+
+/**
  * Fetches all practices from the API
  */
 export async function getPractices() {
@@ -331,36 +340,70 @@ export async function getApprovedArticles() {
 }
 
 /**
+ * Fetches all pending articles from the API
+ * @returns Promise with pending articles or error message
+ */
+export async function getPendingArticles(): Promise<ApiResponse<any[]>> {
+  try {
+    const response = await fetch('http://localhost:3001/api/articles?status=pending', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    return { 
+      success: true, 
+      data: data.data || []
+    };
+  } catch (error) {
+    console.error('Error fetching pending articles:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to fetch pending articles', 
+      data: [] 
+    };
+  }
+}
+
+/**
  * Approves a pending article
  * @param articleId The ID of the article to approve
  * @param moderatorId The ID of the moderator performing the action
- * @param notes Optional notes from the moderator
+ * @param notes Optional approval notes
+ * @returns Promise with approval result
  */
-export async function approveArticle(articleId: string, moderatorId: string, notes: string = '') {
+export async function approveArticle(
+  articleId: string, 
+  moderatorId: string, 
+  notes = ''
+): Promise<ApiResponse<any>> {
   try {
-    const response = await fetch(`/api/articles/${articleId}/approve`, {
-      method: 'POST',
+    const response = await fetch(`http://localhost:3001/api/moderation/${articleId}/approve`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        moderatorId,
-        notes
-      })
+      body: JSON.stringify({ moderatorId, notes }),
+      credentials: 'include'
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
+    
     const data = await response.json();
-    return { success: true, data: data.data || data };
+    
+    if (!response.ok) {
+      throw new Error(data.message || `Server error: ${response.status}`);
+    }
+    
+    return { success: true, data };
   } catch (error) {
-    console.error("Error approving article:", error);
+    console.error('Error approving article:', error);
     return { 
       success: false, 
-      message: error instanceof Error ? error.message : 'Failed to approve article', 
-      data: null 
+      message: error instanceof Error ? error.message : String(error) 
     };
   }
 }
@@ -370,40 +413,39 @@ export async function approveArticle(articleId: string, moderatorId: string, not
  * @param articleId The ID of the article to reject
  * @param moderatorId The ID of the moderator performing the action
  * @param notes Reason for rejection (required)
+ * @returns Promise with rejection result
  */
-export async function rejectArticle(articleId: string, moderatorId: string, notes: string) {
+export async function rejectArticle(
+  articleId: string, 
+  moderatorId: string, 
+  notes: string
+): Promise<ApiResponse<any>> {
   try {
-    if (!notes.trim()) {
-      return {
-        success: false,
-        message: 'Rejection reason is required',
-        data: null
-      };
+    if (!notes || !notes.trim()) {
+      return { success: false, message: 'Rejection reason is required' };
     }
     
-    const response = await fetch(`/api/articles/${articleId}/reject`, {
-      method: 'POST',
+    const response = await fetch(`http://localhost:3001/api/moderation/${articleId}/reject`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        moderatorId,
-        notes
-      })
+      body: JSON.stringify({ moderatorId, notes }),
+      credentials: 'include'
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
+    
     const data = await response.json();
-    return { success: true, data: data.data || data };
+    
+    if (!response.ok) {
+      throw new Error(data.message || `Server error: ${response.status}`);
+    }
+    
+    return { success: true, data };
   } catch (error) {
-    console.error("Error rejecting article:", error);
+    console.error('Error rejecting article:', error);
     return { 
       success: false, 
-      message: error instanceof Error ? error.message : 'Failed to reject article', 
-      data: null 
+      message: error instanceof Error ? error.message : String(error) 
     };
   }
 }

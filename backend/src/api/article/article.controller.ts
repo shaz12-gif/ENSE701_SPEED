@@ -6,104 +6,102 @@ import {
   Post,
   Body,
   Get,
-  UseInterceptors,
-  UploadedFile,
-  BadRequestException,
+  Put,
+  Param,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { ModerateArticleDto } from './dto/moderate-article.dto';
+import { handleApiError } from '../../utils/error-handling';
+import { ArticleStatus } from './article.schema';
 
 @Controller('api/articles')
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
+  /**
+   * Submit a new article
+   * @param createArticleDto Article data
+   * @returns The created article
+   */
   @Post()
-  @UseInterceptors(FileInterceptor('bibFile'))
-  async create(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() createArticleDto: any,
-  ) {
+  async create(@Body() createArticleDto: CreateArticleDto): Promise<any> {
     try {
-      console.log('Received article submission');
-      console.log(
-        'File:',
-        file ? 'Received with name: ' + file.originalname : 'None',
-      );
-      console.log('Body data:', createArticleDto);
-
-      if (file) {
-        // If BibTeX file was provided
-        const bibContent = file.buffer.toString('utf-8');
-        console.log(
-          'BibTeX content preview:',
-          bibContent.substring(0, 50) + '...',
-        );
-
-        // Try to parse the BibTeX file first to verify it's valid
-        try {
-          // Print more detailed debugging information
-          console.log('File size:', file.size, 'bytes');
-          console.log('File MIME type:', file.mimetype);
-
-          // Use the method that doesn't validate required fields
-          const result = await this.articleService.createWithBibTeX(
-            bibContent,
-            createArticleDto,
-          );
-
-          return {
-            success: true,
-            data: result,
-            message: 'Article with BibTeX file submitted successfully',
-          };
-        } catch (bibError) {
-          console.error('BibTeX processing error:', bibError);
-          throw new BadRequestException({
-            message: bibError.message || 'Failed to process BibTeX file',
-            details: bibError,
-          });
-        }
-      } else {
-        // Standard article creation without file
-        const validatedDto = {
-          ...createArticleDto,
-          year: Number(createArticleDto.year),
-        };
-
-        const result = await this.articleService.create(validatedDto);
-        return {
-          success: true,
-          data: result,
-          message: 'Article submitted successfully',
-        };
-      }
+      const article = await this.articleService.create(createArticleDto);
+      return {
+        success: true,
+        message: 'Article submitted successfully',
+        data: article,
+      };
     } catch (error) {
-      console.error('Error in article controller:', error);
-      // Return a more detailed error structure
-      throw new BadRequestException({
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Failed to process article submission',
-        details: error instanceof Error ? error.stack : String(error),
-      });
+      throw handleApiError(error, 'ArticleController.create');
     }
   }
 
+  /**
+   * Get all articles with optional status filter
+   * @param status Optional status filter
+   * @returns List of articles
+   */
   @Get()
-  async findAll(@Query('status') status?: string) {
+  async findAll(@Query('status') status?: ArticleStatus): Promise<any> {
     try {
-      const articles = await this.articleService.findAll(status as any);
+      const articles = await this.articleService.findAll(status);
       return {
         success: true,
         data: articles,
-        message: 'Articles retrieved successfully',
       };
     } catch (error) {
-      console.error('Error retrieving articles:', error);
-      throw new BadRequestException('Failed to retrieve articles');
+      throw handleApiError(error, 'ArticleController.findAll');
+    }
+  }
+
+  /**
+   * Get a specific article by ID
+   * @param id Article ID
+   * @returns The article if found
+   */
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<any> {
+    try {
+      const article = await this.articleService.findOne(id);
+
+      if (!article) {
+        throw new NotFoundException(`Article with ID ${id} not found`);
+      }
+
+      return {
+        success: true,
+        data: article,
+      };
+    } catch (error) {
+      throw handleApiError(error, 'ArticleController.findOne');
+    }
+  }
+
+  /**
+   * Update an article (for moderation)
+   * @param id Article ID
+   * @param moderateDto Moderation data
+   * @returns The updated article
+   */
+  @Put(':id/moderate')
+  async moderate(
+    @Param('id') id: string,
+    @Body() moderateDto: ModerateArticleDto,
+  ): Promise<any> {
+    try {
+      const article = await this.articleService.moderate(id, moderateDto);
+
+      return {
+        success: true,
+        message: `Article ${moderateDto.status} successfully`,
+        data: article,
+      };
+    } catch (error) {
+      throw handleApiError(error, 'ArticleController.moderate');
     }
   }
 }

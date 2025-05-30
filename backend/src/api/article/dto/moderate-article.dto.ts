@@ -1,9 +1,13 @@
 import { IsNotEmpty, IsString, IsEnum, IsOptional } from 'class-validator';
+import { ArticleStatus } from '../article.schema';
 
+/**
+ * Data transfer object for moderating an article
+ */
 export class ModerateArticleDto {
   @IsNotEmpty()
-  @IsEnum(['approved', 'rejected'])
-  status: 'approved' | 'rejected';
+  @IsEnum(ArticleStatus)
+  status: ArticleStatus;
 
   @IsNotEmpty()
   @IsString()

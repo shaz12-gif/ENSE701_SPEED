@@ -1,7 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as mongoose from 'mongoose';
+import { ValidationPipe } from '@nestjs/common';
 
+/**
+ * Bootstrap the NestJS application
+ */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -9,13 +13,16 @@ async function bootstrap() {
   console.log('MongoDB connection state:', mongoose.connection.readyState);
   // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
 
-  // Log environment variables
-  console.log('Environment variables:');
-  console.log('- DB_URI:', process.env.DB_URI ? 'Set (hidden)' : 'Not set');
-  console.log('- DB_NAME:', process.env.DB_NAME);
-  console.log('- ARTICLES_COLLECTION:', process.env.ARTICLES_COLLECTION);
+  // Apply global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
-  // Enable CORS
+  // Enable CORS with proper configuration
   app.enableCors({
     origin: 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -23,9 +30,13 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type,Authorization',
   });
 
-  await app.listen(process.env.PORT || 3001);
-  console.log(
-    `Backend server running on: http://localhost:${process.env.PORT || 3001}`,
-  );
+  // Start the server
+  const port = process.env.PORT || 3001;
+  await app.listen(port);
+  console.log(`Backend server running on: http://localhost:${port}`);
 }
-bootstrap();
+
+bootstrap().catch((err) => {
+  console.error('Failed to start application:', err);
+  process.exit(1);
+});
