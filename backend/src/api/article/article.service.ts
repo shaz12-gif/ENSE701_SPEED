@@ -109,15 +109,20 @@ export class ArticleService {
         return null;
       }
 
-      const entryMatch = bibText.match(/@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}/);
+      // Match the first entry in the BibTeX file
+      const entryMatch = bibText.match(
+        /@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}$/,
+      );
       if (!entryMatch) {
         return null;
       }
 
       const entries: Record<string, string> = {};
       const fieldsText = entryMatch[3];
+
+      // Use the improved regex:
       const fieldMatches = [
-        ...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)(?=\},|\}$)/g),
+        ...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)\}\s*,?/g),
       ];
 
       fieldMatches.forEach((match) => {
@@ -144,6 +149,7 @@ export class ArticleService {
         pages: entries.pages || '',
         doi: entries.doi || '',
         booktitle: entries.booktitle || '',
+        // ...add other fields as needed
       };
     } catch (error) {
       return null;

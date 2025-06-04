@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+/**
+ * Author: Andrew Koves
+ * ID: 20126313
+ * 
+ * EvidenceBrowsePage component
+ * Allows users to search and browse all extracted evidence,
+ * with filtering and sorting options.
+ */
 
+"use client";
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { searchEvidence, getPractices } from '@/services/api';
