@@ -1,25 +1,30 @@
-import { type SortableField } from '@/types'; // Import from central types file
-// Or define it locally:
-// type SortableField = 'claim' | 'result' | 'practice' | 'year' | 'typeOfResearch' | 'participantType';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { type SortableField } from '@/types';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Evidence {
   _id: string;
   claim: string;
   result: string;
   typeOfResearch: string;
   participantType: string;
+  practiceName?: string;
+  // Support both nested and flat structures
+  title?: string;
+  year?: number;
   article?: {
-    title: string;
-    year: number;
+    title?: string;
+    year?: number;
+    authors?: string;
   };
+  averageRating?: number;
+  [key: string]: any;
 }
 
 interface EvidenceTableProps {
   evidence: Evidence[];
-  sortField: SortableField; // Use the specific type
+  sortField: SortableField;
   sortDirection: 'asc' | 'desc';
-  onSort: (field: SortableField) => void; // Use the specific type
+  onSort: (field: SortableField) => void;
   onRowClick: (id: string) => void;
 }
 
@@ -50,6 +55,12 @@ export default function EvidenceTable({
       default:
         return result || 'N/A';
     }
+  };
+
+  // Format rating as stars
+  const formatRating = (rating?: number) => {
+    if (!rating) return "No ratings";
+    return `★`.repeat(Math.round(rating)) + `☆`.repeat(5 - Math.round(rating));
   };
 
   if (evidence.length === 0) {
@@ -85,15 +96,27 @@ export default function EvidenceTable({
             </th>
             <th 
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-              onClick={() => onSort('article.title')}
+              onClick={() => onSort('participantType')}
             >
-              Article {renderSortIndicator('article.title')}
+              Participants {renderSortIndicator('participantType')}
             </th>
             <th 
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-              onClick={() => onSort('article.year')}
+              onClick={() => onSort('title')}
             >
-              Year {renderSortIndicator('article.year')}
+              Title {renderSortIndicator('title')}
+            </th>
+            <th 
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              onClick={() => onSort('year')}
+            >
+              Year {renderSortIndicator('year')}
+            </th>
+            <th 
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              onClick={() => onSort('averageRating')}
+            >
+              Rating {renderSortIndicator('averageRating')}
             </th>
           </tr>
         </thead>
@@ -108,12 +131,20 @@ export default function EvidenceTable({
               <td className="px-6 py-4 whitespace-nowrap text-sm">
                 {formatResult(item.result)}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.typeOfResearch}</td>
-              <td className="px-6 py-4 text-sm text-gray-900">
-                {item.article?.title || "N/A"}
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {item.typeOfResearch || 'N/A'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.article?.year || "N/A"}
+                {item.participantType || 'N/A'}
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-900">
+                {item.article?.title || item.title || 'N/A'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {item.article?.year || item.year || 'N/A'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-500">
+                {formatRating(item.averageRating)}
               </td>
             </tr>
           ))}

@@ -1,6 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * This is a controller for handling HTTP requests
+ */
 import {
   Controller,
   Post,
@@ -10,12 +15,16 @@ import {
   Param,
   Query,
   NotFoundException,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { ModerateArticleDto } from './dto/moderate-article.dto';
 import { handleApiError } from '../../utils/error-handling';
 import { ArticleStatus } from './article.schema';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('api/articles')
 export class ArticleController {
@@ -27,16 +36,25 @@ export class ArticleController {
    * @returns The created article
    */
   @Post()
-  async create(@Body() createArticleDto: CreateArticleDto): Promise<any> {
+  @UseInterceptors(FileInterceptor('bibFile'))
+  async create(
+    @Body() createArticleDto: CreateArticleDto,
+    @UploadedFile() bibFile: Express.Multer.File,
+    @Body('submissionType') submissionType: string,
+  ) {
     try {
-      const article = await this.articleService.create(createArticleDto);
-      return {
-        success: true,
-        message: 'Article submitted successfully',
-        data: article,
-      };
+      if (bibFile && submissionType === 'bibtex') {
+        // BibTeX upload
+        const bibContent = bibFile.buffer.toString('utf8');
+        return this.articleService.createWithBibTeX(bibContent);
+      } else {
+        // Regular form submission
+        return this.articleService.create(createArticleDto);
+      }
     } catch (error) {
-      throw handleApiError(error, 'ArticleController.create');
+      throw new BadRequestException(
+        `Failed to create article: ${error.message}`,
+      );
     }
   }
 

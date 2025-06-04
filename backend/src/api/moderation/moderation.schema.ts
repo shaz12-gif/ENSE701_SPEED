@@ -2,14 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as mongoose from 'mongoose';
 
-/**
- * Moderation document type
- */
 export type ModerationDocument = Moderation & Document;
 
-/**
- * Moderation schema definition
- */
 @Schema({ timestamps: true })
 export class Moderation {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })

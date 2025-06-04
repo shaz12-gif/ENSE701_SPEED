@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { getPractices } from '@/services/api';
 
-export interface EvidenceFormData {
+interface EvidenceFormData {
   practiceId: string;
   claim: string;
   supportsClaim: boolean;
-  result: 'agree' | 'disagree' | 'mixed';
+  result: string;
   typeOfResearch: string;
-  participantType: string;
+  participantType?: string;
   analystComments?: string;
+  description?: string;
 }
 
 interface EvidenceFormProps {
@@ -16,11 +17,12 @@ interface EvidenceFormProps {
   isSubmitting: boolean;
 }
 
+// Update these to match the exact values expected by the backend
 const researchTypes = [
-  { id: 'case_study', label: 'Case Study' },
+  { id: 'case study', label: 'Case Study' },
   { id: 'experiment', label: 'Experiment' },
   { id: 'survey', label: 'Survey' },
-  { id: 'literature_review', label: 'Literature Review' },
+  { id: 'literature review', label: 'Literature Review' },
   { id: 'other', label: 'Other' }
 ];
 
@@ -49,13 +51,12 @@ export default function EvidenceForm({ onSubmit, isSubmitting }: EvidenceFormPro
   const [formData, setFormData] = useState<EvidenceFormData>({
     practiceId: '',
     claim: '',
-    supportsClaim: true,
-    result: 'agree',
+    result: 'agree', // Default to agree
     typeOfResearch: '',
     participantType: '',
-    analystComments: ''
+    supportsClaim: true, // Add this required property
   });
-
+  
   const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof EvidenceFormData, string>>>({});
   const [practices, setPractices] = useState<{ id: string, name: string }[]>([]);
   const [loadingPractices, setLoadingPractices] = useState(true);
@@ -70,7 +71,7 @@ export default function EvidenceForm({ onSubmit, isSubmitting }: EvidenceFormPro
         const result = await getPractices();
         
         if (result.success) {
-          setPractices(result.data);
+          setPractices(result.data as { id: string, name: string }[]);
         } else {
           throw new Error(result.message || 'Failed to fetch practices');
         }
@@ -99,25 +100,6 @@ export default function EvidenceForm({ onSubmit, isSubmitting }: EvidenceFormPro
       setValidationErrors(prev => ({
         ...prev,
         [name]: undefined
-      }));
-    }
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    
-    if (name === 'supportsClaim') {
-      // Update both supportsClaim and result to be consistent
-      const result = checked ? 'agree' : 'disagree';
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked,
-        result
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
       }));
     }
   };
@@ -188,7 +170,7 @@ export default function EvidenceForm({ onSubmit, isSubmitting }: EvidenceFormPro
             className={`w-full border rounded-md py-2 px-3 ${validationErrors.practiceId ? 'border-red-500' : 'border-gray-300'}`}
             required
           >
-            <option value="">Select a practice</option>
+            <option key="empty-practice" value="">Select a practice</option>
             {practices.map(practice => (
               <option key={practice.id} value={practice.id}>
                 {practice.name}
@@ -214,13 +196,13 @@ export default function EvidenceForm({ onSubmit, isSubmitting }: EvidenceFormPro
           className={`w-full border rounded-md py-2 px-3 mb-2 ${validationErrors.claim ? 'border-red-500' : 'border-gray-300'}`}
           required
         >
-          <option value="">Select a claim</option>
+          <option key="empty-claim" value="">Select a claim</option>
           {commonClaims.map((claim, index) => (
-            <option key={index} value={claim}>
+            <option key={`claim-${index}`} value={claim}>
               {claim}
             </option>
           ))}
-          <option value="custom">Custom claim...</option>
+          <option key="custom-claim" value="custom">Custom claim...</option>
         </select>
         
         {useCustomClaim && (
@@ -242,37 +224,21 @@ export default function EvidenceForm({ onSubmit, isSubmitting }: EvidenceFormPro
       </div>
 
       <div className="form-group">
-        <div className="flex items-center mb-2">
-          <input
-            type="checkbox"
-            id="supportsClaim"
-            name="supportsClaim"
-            checked={formData.supportsClaim}
-            onChange={handleCheckboxChange}
-            className="mr-2"
-          />
-          <label htmlFor="supportsClaim" className="text-sm font-medium">
-            This evidence supports this claim
-          </label>
-        </div>
-        
-        <div className="mt-2">
-          <label htmlFor="result" className="block text-sm font-medium mb-1">
-            Result <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="result"
-            name="result"
-            value={formData.result}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md py-2 px-3"
-            required
-          >
-            <option value="agree">Agree (supports claim)</option>
-            <option value="disagree">Disagree (refutes claim)</option>
-            <option value="mixed">Mixed (partially supports/refutes)</option>
-          </select>
-        </div>
+        <label htmlFor="result" className="block text-sm font-medium mb-1">
+          Result <span className="text-red-500">*</span>
+        </label>
+        <select
+          id="result"
+          name="result"
+          value={formData.result}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-md py-2 px-3"
+          required
+        >
+          <option key="agree" value="agree">Agree (supports claim)</option>
+          <option key="disagree" value="disagree">Disagree (refutes claim)</option>
+          <option key="mixed" value="mixed">Mixed (partially supports/refutes)</option>
+        </select>
       </div>
 
       <div className="form-group">
@@ -287,7 +253,7 @@ export default function EvidenceForm({ onSubmit, isSubmitting }: EvidenceFormPro
           className={`w-full border rounded-md py-2 px-3 ${validationErrors.typeOfResearch ? 'border-red-500' : 'border-gray-300'}`}
           required
         >
-          <option value="">Select research type</option>
+          <option key="empty-research" value="">Select research type</option>
           {researchTypes.map(type => (
             <option key={type.id} value={type.id}>
               {type.label}
@@ -311,7 +277,7 @@ export default function EvidenceForm({ onSubmit, isSubmitting }: EvidenceFormPro
           className={`w-full border rounded-md py-2 px-3 ${validationErrors.participantType ? 'border-red-500' : 'border-gray-300'}`}
           required
         >
-          <option value="">Select participant type</option>
+          <option key="empty-participant" value="">Select participant type</option>
           {participantTypes.map(type => (
             <option key={type.id} value={type.id}>
               {type.label}

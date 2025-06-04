@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useRouter } from 'next/navigation';
 
@@ -5,12 +7,19 @@ interface Evidence {
   _id: string;
   claim: string;
   result: 'agree' | 'disagree' | 'mixed';
+  typeOfResearch: string;
+  participantType: string;
   practiceName?: string;
-  typeOfResearch?: string;
+  // Support both nested and flat structures
+  title?: string;
+  year?: number;
   article?: {
-    title: string;
+    title?: string;
     year?: number;
+    authors?: string;
   };
+  averageRating?: number;
+  [key: string]: any;
 }
 
 interface EvidenceCardsProps {
@@ -46,39 +55,61 @@ export default function EvidenceCards({ evidence, onCardClick }: EvidenceCardsPr
     }
   };
 
+  // Format rating as stars
+  const formatRating = (rating?: number) => {
+    if (!rating) return null;
+    return `★`.repeat(Math.round(rating)) + `☆`.repeat(5 - Math.round(rating));
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {evidence.map((item) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {evidence.map(item => (
         <div 
           key={item._id}
-          className="border rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer bg-white"
           onClick={() => onCardClick(item._id)}
+          className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
         >
-          <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.claim}</h3>
-          
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`font-medium ${getResultClass(item.result)}`}>
-              {getResultText(item.result)}
-            </span>
-            <span className="text-xs px-2 py-0.5 bg-gray-100 rounded">
-              {item.typeOfResearch || 'Research'}
-            </span>
-          </div>
-          
-          <div className="text-sm text-gray-600 mb-2">
-            <span className="font-medium">Practice:</span> {item.practiceName || 'Unknown'}
-          </div>
-          
-          {item.article && (
-            <div className="mt-3 pt-3 border-t text-sm text-gray-500">
-              <div className="line-clamp-1">
-                {item.article.title}
+          <div className="p-5">
+            <h3 className="font-bold text-lg mb-2 line-clamp-2">{item.claim}</h3>
+            <p className="text-sm text-gray-500 mb-2">
+              {item.article?.title || item.title || "Untitled Article"} 
+              ({item.article?.year || item.year || "N/A"})
+            </p>
+            
+            <div className="flex flex-col space-y-2">
+              {/* Research type & participant type */}
+              <div className="flex justify-between text-xs text-gray-600">
+                <span>Research: {item.typeOfResearch || 'N/A'}</span>
+                <span>Participants: {item.participantType || 'N/A'}</span>
               </div>
-              {item.article.year && (
-                <div>Published: {item.article.year}</div>
+              
+              {/* Practice name */}
+              {item.practiceName && (
+                <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  {item.practiceName}
+                </div>
+              )}
+              
+              {/* Rating */}
+              {item.averageRating && (
+                <div className="text-yellow-500 text-sm">
+                  {formatRating(item.averageRating)}
+                </div>
               )}
             </div>
-          )}
+            
+            {/* Result indicator */}
+            <div className="mt-3">
+              <span 
+                className={`px-3 py-1 rounded-full text-sm font-medium 
+                  ${item.result === 'agree' ? 'bg-green-100 text-green-800' : 
+                    item.result === 'disagree' ? 'bg-red-100 text-red-800' : 
+                    'bg-yellow-100 text-yellow-800'}`}
+              >
+                {getResultText(item.result)}
+              </span>
+            </div>
+          </div>
         </div>
       ))}
     </div>

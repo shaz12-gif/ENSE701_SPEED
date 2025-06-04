@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -52,8 +53,8 @@ export default function EvidenceBrowsePage() {
       try {
         const result = await getPractices();
         
-        if (result.success) {
-          setPractices(result.data);
+        if (result.success && Array.isArray(result.data)) {
+          setPractices(result.data as Practice[]);
         }
       } catch (error) {
         console.error('Error fetching practices:', error);
@@ -92,17 +93,29 @@ export default function EvidenceBrowsePage() {
         
         const result = await searchEvidence(queryParams);
         
-        if (result.success) {
-          // Enhance evidence with practice names
-          const enhancedEvidence = result.data.map((item: Evidence) => {
+        if (result.success && Array.isArray(result.data)) {
+          // Enhance and normalize evidence data structure
+          const enhancedEvidence = result.data.map((item: any) => {
             const practice = practices.find(p => p.id === item.practiceId);
+            
+            // Create a normalized structure that works with both display components
             return {
               ...item,
-              practiceName: practice ? practice.name : 'Unknown Practice'
+              practiceName: practice ? practice.name : 'Unknown Practice',
+              // Make sure title and year are available both at top level and in article property
+              title: item.title || 'Untitled',
+              year: item.year || new Date().getFullYear(),
+              // Create article property if it doesn't exist
+              article: {
+                title: item.title || (item.article?.title || 'Untitled'),
+                year: item.year || (item.article?.year || new Date().getFullYear()),
+                authors: item.article?.authors || ''
+              }
             };
           });
           
-          setEvidence(enhancedEvidence);
+          // Cast the enhanced evidence to the correct type
+          setEvidence(enhancedEvidence as Evidence[]);
         } else {
           throw new Error(result.message || 'Failed to fetch evidence');
         }
@@ -148,12 +161,11 @@ export default function EvidenceBrowsePage() {
   // Create sorted evidence
   const getSortedEvidence = useCallback(() => {
     return [...evidence].sort((a, b) => {
-      // Widen the type to allow any value, which we'll convert to string/number later
       let fieldValueA: unknown;
       let fieldValueB: unknown;
 
       switch (sortField) {
-        case 'practice':
+        case 'practiceName':
           fieldValueA = a.practiceName || '';
           fieldValueB = b.practiceName || '';
           break;
@@ -166,31 +178,30 @@ export default function EvidenceBrowsePage() {
           fieldValueB = b.result || '';
           break;
         case 'year':
-          fieldValueA = a.article?.year || 0;
-          fieldValueB = b.article?.year || 0;
+          // Handle both nested and flat structures
+          fieldValueA = a.article?.year || a.year || 0;
+          fieldValueB = b.article?.year || b.year || 0;
           break;
         case 'typeOfResearch':
           fieldValueA = a.typeOfResearch || '';
           fieldValueB = b.typeOfResearch || '';
-          break;
-        case 'participantType':
-          fieldValueA = a.participantType || '';
-          fieldValueB = b.participantType || '';
           break;
         default:
           fieldValueA = '';
           fieldValueB = '';
       }
 
-      // Handle number comparisons
+      // Numeric sorting for year
       if (typeof fieldValueA === 'number' && typeof fieldValueB === 'number') {
-        return sortDirection === 'asc' ? fieldValueA - fieldValueB : fieldValueB - fieldValueA;
+        return sortDirection === 'asc' 
+          ? fieldValueA - fieldValueB 
+          : fieldValueB - fieldValueA;
       }
 
-      // Convert to strings for comparison (for all other types)
+      // String sorting for everything else
       const strA = String(fieldValueA).toLowerCase();
       const strB = String(fieldValueB).toLowerCase();
-
+      
       if (strA < strB) return sortDirection === 'asc' ? -1 : 1;
       if (strA > strB) return sortDirection === 'asc' ? 1 : -1;
       return 0;
@@ -263,9 +274,8 @@ export default function EvidenceBrowsePage() {
         />
       ) : (
         <EvidenceCards 
-          evidence={sortedEvidence}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onCardClick={(id: any) => router.push(`/evidence/${id}`)}
+          evidence={sortedEvidence as any[]}
+          onCardClick={(id: string) => router.push(`/evidence/${id}`)}
         />
       )}
     </div>

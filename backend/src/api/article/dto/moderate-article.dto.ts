@@ -2,7 +2,7 @@ import { IsNotEmpty, IsString, IsEnum, IsOptional } from 'class-validator';
 import { ArticleStatus } from '../article.schema';
 
 /**
- * Data transfer object for moderating an article
+ * DTO for moderating an article
  */
 export class ModerateArticleDto {
   @IsNotEmpty()

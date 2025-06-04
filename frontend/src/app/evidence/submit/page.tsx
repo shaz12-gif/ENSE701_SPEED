@@ -76,8 +76,8 @@ export default function SubmitEvidencePage() {
         setIsLoading(true);
         const response = await getArticles({ status: 'approved' });
         if (response.success) {
-          setArticles(response.data);
-          setFilteredArticles(response.data);
+          setArticles(response.data as Article[]);
+          setFilteredArticles(response.data as Article[]);
         } else {
           throw new Error(response.message || 'Failed to fetch approved articles');
         }
@@ -242,7 +242,7 @@ export default function SubmitEvidencePage() {
                 required
                 className="w-full border rounded-md py-2 px-3"
               >
-                <option value="">Select a practice</option>
+                <option key="empty" value="">Select a practice</option>
                 {practices.map(practice => (
                   <option key={practice.id || practice._id} value={practice.id || practice._id}>
                     {practice.name}
@@ -296,7 +296,7 @@ export default function SubmitEvidencePage() {
                 required
                 className="w-full border rounded-md py-2 px-3"
               >
-                <option value="">Select research type</option>
+                <option key="empty-research" value="">Select research type</option>
                 {researchTypes.map(type => (
                   <option key={type.value} value={type.value}>
                     {type.label}
@@ -316,7 +316,7 @@ export default function SubmitEvidencePage() {
                 onChange={handleChange}
                 className="w-full border rounded-md py-2 px-3"
               >
-                <option value="">Select participant type</option>
+                <option key="empty-participant" value="">Select participant type</option>
                 {participantTypes.map(type => (
                   <option key={type.value} value={type.value}>
                     {type.label}

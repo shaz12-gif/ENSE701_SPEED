@@ -6,42 +6,53 @@ import {
   Min,
   Max,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 /**
- * Data transfer object for creating a new article
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * This is a DTO (Data Transfer Object) for creating an article
+ * It defines what data is needed when someone creates a new article
+ * It validates the data with Decorators (@) and defines what is required and what is not.
  */
 export class CreateArticleDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   title: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   authors: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   journal: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   @Min(1900)
-  @Max(new Date().getFullYear() + 1) // Allow current year +1 for pre-prints
+  @Max(new Date().getFullYear() + 1)
+  @Transform(({ value }) => parseInt(value, 10))
   year: number;
 
   @IsOptional()
   @IsString()
+  volume?: string;
+
+  @IsOptional()
+  @IsString()
+  number?: string;
+
+  @IsOptional()
+  @IsString()
+  pages?: string;
+
+  @IsOptional()
+  @IsString()
   doi?: string;
-
-  @IsOptional()
-  @IsString()
-  url?: string;
-
-  @IsOptional()
-  @IsString()
-  abstract?: string;
-
-  @IsOptional()
-  @IsString()
-  submittedBy?: string;
 }

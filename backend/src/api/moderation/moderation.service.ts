@@ -24,13 +24,6 @@ export class ModerationService {
     return this.articleService.findAll(ArticleStatus.PENDING);
   }
 
-  /**
-   * Approve an article
-   * @param id Article ID
-   * @param moderatorId Moderator ID
-   * @param notes Optional approval notes
-   * @returns The approved article
-   */
   async approveArticle(
     id: string,
     moderatorId: string,
@@ -57,13 +50,6 @@ export class ModerationService {
     }
   }
 
-  /**
-   * Reject an article
-   * @param id Article ID
-   * @param moderatorId Moderator ID
-   * @param notes Rejection notes (required)
-   * @returns The rejected article
-   */
   async rejectArticle(
     id: string,
     moderatorId: string,

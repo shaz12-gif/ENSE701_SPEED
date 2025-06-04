@@ -82,15 +82,6 @@ export interface EvidenceDetail {
 }
 
 // Define the SortableField type with all possible values
-export type SortableField = 
-  | 'claim' 
-  | 'result' 
-  | 'typeOfResearch' 
-  | 'participantType'
-  | 'practice'
-  | 'year'
-  | 'article.title'
-  | 'article.year'
-  | 'article.authors';
+export type SortableField = 'claim' | 'result' | 'typeOfResearch' | 'participantType' | 'title' | 'year' | 'authors' | 'practiceName' | 'averageRating' | 'createdAt';
 
 // Your other existing types stay here

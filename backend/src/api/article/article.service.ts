@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/**
+ *  Andrew Koves
+ *  20126313
+ *  SPEED Group 3
+ *  This service handles logic for articles
+ *  It interacts with the database to create, read, update, and moderate articles
+ *  The ESLINT stuff at the top is because for some reason ESLINT hates me personally
+ *  and doesn't like the way I write code
+ */
 import {
   BadRequestException,
   Injectable,
@@ -12,12 +21,20 @@ import { Article, ArticleDocument, ArticleStatus } from './article.schema';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { ModerateArticleDto } from './dto/moderate-article.dto';
 
+//Injectable tells Nest this is a service so it can connect to the correct COLLECTION (not database)
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
   ) {}
 
+  /**
+   * Creates a new article
+   * @param createArticleDto Article data
+   * @returns The created article
+   * PROMISE: this means that the function WILL retturn an article or throw an error
+   * This means that the entire webpage wont just freeze while it waits for the database to respond
+   */
   async create(createArticleDto: CreateArticleDto): Promise<Article> {
     try {
       const newArticle = new this.articleModel({
@@ -26,176 +43,87 @@ export class ArticleService {
       });
       return await newArticle.save();
     } catch (error) {
-      console.error('Error creating article:', error);
       throw new BadRequestException(
         `Failed to create article: ${error.message}`,
       );
     }
   }
-
-  async createWithBibTeX(bibContent: string, additionalData: any = {}) {
+  /**
+   * Creates a new article from a BibTeX file
+   * @param bibContent content of the BibTeX file
+   * @param additionalData Additional data to include in the article
+   * @returns The created article
+   * This function parses the BibTeX content and saves it to the database
+   */
+  async createWithBibTeX(
+    bibContent: string,
+    additionalData: any = {},
+  ): Promise<Article> {
     try {
-      console.log('Creating article with BibTeX content');
+      const parsedData = this.parseBibTeX(bibContent) || {
+        title: '',
+        authors: '',
+        journal: '',
+        year: new Date().getFullYear(),
+        volume: '',
+        number: '',
+        pages: '',
+        doi: '',
+        booktitle: '',
+      };
 
-      // Log DB connection info
-      console.log('MongoDB connection info:');
-      console.log('- DB_URI:', process.env.DB_URI ? 'Set (hidden)' : 'Not set');
-      console.log('- DB_NAME:', process.env.DB_NAME);
-      console.log('- Articles collection:', process.env.ARTICLES_COLLECTION);
-
-      // Parse the BibTeX content
-      let parsedData = this.parseBibTeX(bibContent);
-
-      if (!parsedData) {
-        // Instead of throwing an error, use default values
-        console.log('Could not parse BibTeX properly, using default values');
-        parsedData = {
-          title: '',
-          authors: '',
-          journal: '',
-          year: new Date().getFullYear(),
-          volume: '',
-          number: '',
-          pages: '',
-          doi: '',
-          booktitle: '',
-        };
-      }
-
-      // Create article data with explicit defaults for all required fields
       const articleData = {
+        ...additionalData,
         title: parsedData.title || 'Title from BibTeX file',
         authors: parsedData.authors || 'Unknown authors',
         journal:
           parsedData.journal || parsedData.booktitle || 'Unknown journal',
-        year: parsedData.year
-          ? Number(parsedData.year)
-          : new Date().getFullYear(),
+        year: parsedData.year || new Date().getFullYear(),
         volume: parsedData.volume || '',
         number: parsedData.number || '',
         pages: parsedData.pages || '',
         doi: parsedData.doi || '',
-        status: 'pending',
-        bibTeXSource: bibContent, // Store the raw BibTeX content
+        status: ArticleStatus.PENDING,
+        bibTeXSource: bibContent,
       };
 
-      console.log('Saving article with data:', {
-        ...articleData,
-        bibTeXSource: bibContent ? `${bibContent.substring(0, 50)}...` : 'None',
-      });
-
-      // Create and save the article
       const createdArticle = new this.articleModel(articleData);
-
-      try {
-        const savedArticle = await createdArticle.save();
-        console.log('Article saved successfully with ID:', savedArticle._id);
-        console.log('Saved article data:', JSON.stringify(savedArticle));
-        return savedArticle;
-      } catch (dbError) {
-        console.error('MongoDB save error:', dbError);
-        throw new Error(`Database error: ${dbError.message}`);
-      }
+      return await createdArticle.save();
     } catch (error) {
-      console.error('Error in createWithBibTeX:', error);
       throw new BadRequestException(
         'Failed to save BibTeX file to database. Please try again.',
       );
     }
   }
 
-  // New method to create an article with only BibTeX content
-  async createWithBibTeXOnly(bibContent: string): Promise<Article> {
-    try {
-      // Parse the BibTeX content
-      let parsedData = this.parseBibTeX(bibContent);
-
-      if (!parsedData) {
-        // Instead of throwing an error, just use empty default values
-        console.log('Could not parse BibTeX properly, using default values');
-        parsedData = {
-          title: '',
-          authors: '',
-          journal: '',
-          year: new Date().getFullYear(),
-          volume: '',
-          number: '',
-          pages: '',
-          doi: '',
-          booktitle: '',
-        };
-      }
-
-      // Log the parsed data
-      console.log('Parsed BibTeX data:', parsedData);
-
-      // No field validation - always set default values for required fields
-      const articleData = {
-        title: parsedData.title || 'Title from BibTeX file',
-        authors: parsedData.authors || 'Unknown authors',
-        journal:
-          parsedData.journal || parsedData.booktitle || 'Unknown journal',
-        year: parsedData.year
-          ? Number(parsedData.year)
-          : new Date().getFullYear(),
-        volume: parsedData.volume || '',
-        number: parsedData.number || '',
-        pages: parsedData.pages || '',
-        doi: parsedData.doi || '',
-        status: 'pending',
-        bibTeXSource: bibContent,
-      };
-
-      // Directly create a new document with the mongoose model
-      const createdArticle = new this.articleModel(articleData);
-
-      // Save and return the result
-      return await createdArticle.save();
-    } catch (error) {
-      console.error('Error creating article from BibTeX:', error);
-      throw new BadRequestException(
-        'Failed to process BibTeX file. Please try again or submit manually.',
-      );
-    }
-  }
-
-  // BibTeX parser function
+  /**
+   * This function parses a BibTeX entry from a string
+   * and extracts relevant fields such as title, authors, journal, year, etc.
+   * @param bibText : The BibTeX entry as a string
+   * @returns An object containing the extracted fields or null if parsing fails
+   * this turns a BibTeX entry into a structured object for the database
+   */
   private parseBibTeX(bibText: string) {
     try {
-      console.log('Parsing BibTeX text:', bibText.substring(0, 100) + '...');
-
-      if (!bibText || bibText.trim() === '') {
-        console.error('Empty BibTeX content received');
+      if (!bibText?.trim()) {
         return null;
       }
 
-      // Match the first entry in the BibTeX file
       const entryMatch = bibText.match(/@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}/);
       if (!entryMatch) {
-        console.error('No valid BibTeX entry found in content');
         return null;
       }
 
-      console.log('BibTeX entry type:', entryMatch[1]);
-      console.log('BibTeX entry key:', entryMatch[2]);
-
       const entries: Record<string, string> = {};
-
-      // Extract all key-value pairs
       const fieldsText = entryMatch[3];
-      console.log('Fields text:', fieldsText.substring(0, 100) + '...');
-
       const fieldMatches = [
         ...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)(?=\},|\}$)/g),
       ];
-
-      console.log('Found fields count:', fieldMatches.length);
 
       fieldMatches.forEach((match) => {
         const key = match[1].toLowerCase();
         let value = match[2].trim();
 
-        // Handle the authors field specially
         if (key === 'author') {
           value = value
             .split(' and ')
@@ -204,12 +132,8 @@ export class ArticleService {
         }
 
         entries[key] = value;
-        console.log(
-          `BibTeX field: ${key} = ${value.substring(0, 30)}${value.length > 30 ? '...' : ''}`,
-        );
       });
 
-      // Map BibTeX fields to our article fields
       return {
         title: entries.title || '',
         authors: entries.author || '',
@@ -222,16 +146,18 @@ export class ArticleService {
         booktitle: entries.booktitle || '',
       };
     } catch (error) {
-      console.error('Error parsing BibTeX:', error);
       return null;
     }
   }
 
+  /**
+   * Finds all articles, optionally filtered by status its kinda simple
+   */
   async findAll(status?: ArticleStatus): Promise<Article[]> {
     const query = status ? { status } : {};
     return this.articleModel.find(query).sort({ createdAt: -1 }).exec();
   }
-
+  //Finds a single article by ID
   async findOne(id: string): Promise<Article> {
     return this.articleModel.findById(id).exec();
   }
@@ -239,33 +165,30 @@ export class ArticleService {
   async findByIds(ids: string[]): Promise<Article[]> {
     return this.articleModel.find({ _id: { $in: ids } }).exec();
   }
-
-  // Add or update this method in your ArticleService
-  async moderate(id: string, moderateDto: ModerateArticleDto) {
+  //Finds an article by ID and updates its status
+  async moderate(
+    id: string,
+    moderateDto: ModerateArticleDto,
+  ): Promise<Article> {
     try {
-      console.log(
-        `ArticleService.moderate: Updating article ${id} to status ${moderateDto.status}`,
-      );
-
       const article = await this.articleModel.findById(id);
       if (!article) {
         throw new NotFoundException(`Article with ID ${id} not found`);
       }
 
-      // Update the article status
       article.status = moderateDto.status;
       if (moderateDto.moderationNotes) {
         article.moderationComments = moderateDto.moderationNotes;
       }
 
-      // Save the updated article
-      const updatedArticle = await article.save();
-      console.log(`Article ${id} status updated to ${moderateDto.status}`);
-
-      return updatedArticle;
+      return await article.save();
     } catch (error) {
-      console.error(`Error moderating article ${id}:`, error);
-      throw error;
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error moderating article: ${error.message}`,
+      );
     }
   }
 }

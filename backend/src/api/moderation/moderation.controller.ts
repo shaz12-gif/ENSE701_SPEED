@@ -7,10 +7,6 @@ import { handleApiError } from '../../utils/error-handling';
 export class ModerationController {
   constructor(private readonly moderationService: ModerationService) {}
 
-  /**
-   * Get moderation queue
-   * @returns List of articles pending moderation
-   */
   @Get('queue')
   async getQueue(): Promise<any> {
     try {
@@ -24,12 +20,6 @@ export class ModerationController {
     }
   }
 
-  /**
-   * Approve an article
-   * @param id Article ID
-   * @param body Request body containing moderator ID and optional notes
-   * @returns The approved article
-   */
   @Put(':id/approve')
   async approveArticle(
     @Param('id') id: string,
@@ -52,12 +42,6 @@ export class ModerationController {
     }
   }
 
-  /**
-   * Reject an article
-   * @param id Article ID
-   * @param body Request body containing moderator ID and rejection notes
-   * @returns The rejected article
-   */
   @Put(':id/reject')
   async rejectArticle(
     @Param('id') id: string,

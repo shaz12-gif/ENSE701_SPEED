@@ -4,7 +4,15 @@ import { MulterModule } from '@nestjs/platform-express';
 import { Article, ArticleSchema } from './article.schema';
 import { ArticleService } from './article.service';
 import { ArticleController } from './article.controller';
-
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * This is a module
+ * Modules group all relevant and related files and functions together
+ * This one also imports multer to upload files
+ */
 @Module({
   imports: [
     MongooseModule.forFeature([

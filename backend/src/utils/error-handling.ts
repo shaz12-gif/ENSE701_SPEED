@@ -14,7 +14,7 @@ export interface ErrorResponse {
 }
 
 /**
- * Handles and formats API errors with consistent structure
+ * This is a standardized error handling function for api errors
  * @param error The error object
  * @param context The context where error occurred (usually the class/service name)
  * @param path Optional request path where error occurred

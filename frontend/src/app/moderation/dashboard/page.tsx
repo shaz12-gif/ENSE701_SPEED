@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { getPendingArticles, approveArticle, rejectArticle } from '@/services/api';
 import ArticleCard from '@/components/data/ArticleCard';
+import ProtectedRoute from '@/components/navigation/ProtectedRoute';
 
 /**
  * Article interface for type safety
@@ -46,7 +47,7 @@ export default function ModerationDashboardPage() {
       const response = await getPendingArticles();
       
       if (response.success) {
-        setArticles(response.data || []);
+        setArticles((response.data as Article[]) || []);
       } else {
         throw new Error(response.message || 'Failed to fetch articles');
       }
@@ -134,51 +135,53 @@ export default function ModerationDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Article Moderation Dashboard</h1>
-      
-      {/* Error message */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <p>{error}</p>
-          <button 
-            onClick={() => setError(null)}
-            className="font-bold ml-2 underline"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-      
-      {/* Article list */}
-      {articles.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded">
-          <p className="text-gray-500">No articles found waiting for moderation.</p>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => (
-            <ArticleCard 
-              key={article._id} 
-              article={article} 
-              actions={[
-                { 
-                  label: processingIds.includes(article._id) ? 'Processing...' : 'Approve', 
-                  onClick: () => handleApproveArticle(article),
-                  disabled: processingIds.includes(article._id),
-                  className: 'bg-green-600 hover:bg-green-700 disabled:bg-green-300' 
-                },
-                { 
-                  label: processingIds.includes(article._id) ? 'Processing...' : 'Reject', 
-                  onClick: () => handleRejectArticle(article),
-                  disabled: processingIds.includes(article._id), 
-                  className: 'bg-red-600 hover:bg-red-700 disabled:bg-red-300' 
-                }
-              ]} 
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <ProtectedRoute adminOnly={true}>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6">Article Moderation Dashboard</h1>
+        
+        {/* Error message */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <p>{error}</p>
+            <button 
+              onClick={() => setError(null)}
+              className="font-bold ml-2 underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+        
+        {/* Article list */}
+        {articles.length === 0 ? (
+          <div className="text-center py-8 bg-gray-50 rounded">
+            <p className="text-gray-500">No articles found waiting for moderation.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {articles.map((article) => (
+              <ArticleCard 
+                key={article._id} 
+                article={article} 
+                actions={[
+                  { 
+                    label: processingIds.includes(article._id) ? 'Processing...' : 'Approve', 
+                    onClick: () => handleApproveArticle(article),
+                    disabled: processingIds.includes(article._id),
+                    className: 'bg-green-600 hover:bg-green-700 disabled:bg-green-300' 
+                  },
+                  { 
+                    label: processingIds.includes(article._id) ? 'Processing...' : 'Reject', 
+                    onClick: () => handleRejectArticle(article),
+                    disabled: processingIds.includes(article._id), 
+                    className: 'bg-red-600 hover:bg-red-700 disabled:bg-red-300' 
+                  }
+                ]} 
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </ProtectedRoute>
   );
 }

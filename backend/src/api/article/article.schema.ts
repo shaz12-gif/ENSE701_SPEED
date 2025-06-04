@@ -2,7 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 /**
- * Enum for article status
+ * Andrew Koves
+ *  20126313
+ * SPEED Group 3
+ * This is a schema for the articles
+ * it defines how articles are stored in the database
  */
 export enum ArticleStatus {
   PENDING = 'pending',
@@ -10,14 +14,8 @@ export enum ArticleStatus {
   REJECTED = 'rejected',
 }
 
-/**
- * Article document type
- */
 export type ArticleDocument = Article & Document;
 
-/**
- * Article schema definition
- */
 @Schema({
   timestamps: true,
   collection: process.env.ARTICLES_COLLECTION || 'articles',
@@ -66,9 +64,3 @@ export const ArticleSchema = SchemaFactory.createForClass(Article);
 // Add any indexes for performance
 ArticleSchema.index({ title: 1 });
 ArticleSchema.index({ status: 1 });
-
-// Log the collection name on schema creation
-console.log(
-  'Article schema collection name:',
-  process.env.ARTICLES_COLLECTION || 'articles',
-);

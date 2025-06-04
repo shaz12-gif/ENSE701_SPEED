@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { EvidenceDetail } from '@/types'; // Import from central types file
 import { getEvidence, getAverageRating, submitRating } from '@/services/api';
 import ArticleCard from '@/components/data/ArticleCard';
 
@@ -17,8 +17,8 @@ export default function EvidenceDetailPage() {
   const params = useParams();
   const id = params?.id as string;
   
-  const [evidence, setEvidence] = useState<EvidenceDetail | null>(null);
-  const [article, setArticle] = useState<EvidenceDetail['article'] | null>(null);
+  const [evidence, setEvidence] = useState<Evidence | null>(null);
+  const [article, setArticle] = useState<Evidence['article'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -37,16 +37,30 @@ export default function EvidenceDetailPage() {
         setIsLoading(true);
         const response = await getEvidence({ _id: id });
         
-        if (response.success && response.data && response.data.length > 0) {
-          const evidenceData = response.data[0];
+        if (response.success && response.data) {
+          // Handle both array and single object responses
+          const evidenceData = Array.isArray(response.data) 
+            ? response.data[0] 
+            : response.data;
+          
+          if (!evidenceData) {
+            throw new Error('Evidence not found');
+          }
+          
           setEvidence(evidenceData);
           
           // If the evidence has an articleId and article data is populated
           if (evidenceData.article) {
             setArticle(evidenceData.article);
           } else if (evidenceData.articleId) {
-            // Fetch article data if needed
-            // For now, we'll assume the evidence already includes article data
+            // Create a minimal article object from evidence data
+            setArticle({
+              _id: evidenceData.articleId,
+              title: evidenceData.title || 'Untitled',
+              year: evidenceData.year || new Date().getFullYear(),
+              authors: evidenceData.authors || 'Unknown authors',
+              journal: evidenceData.source || 'Unknown journal'
+            });
           }
           
           // Fetch ratings
@@ -264,7 +278,13 @@ export default function EvidenceDetailPage() {
             <h2 className="text-xl font-semibold mb-4">Source Article</h2>
             
             {article ? (
-              <ArticleCard article={article} />
+              <ArticleCard article={{
+                ...article, // Include all article properties first
+                _id: article._id || evidence.articleId || 'unknown',
+                year: article.year || evidence.year || new Date().getFullYear(),
+                authors: article.authors || 'Unknown authors',
+                journal: article.journal || evidence.source || 'Unknown journal'
+              }} />
             ) : (
               <p className="text-gray-500">Article information not available</p>
             )}
@@ -273,4 +293,36 @@ export default function EvidenceDetailPage() {
       </div>
     </div>
   );
+}
+
+// Update your local interface definitions
+interface Evidence {
+  _id: string;
+  claim: string;
+  result: string;
+  typeOfResearch?: string;
+  participantType?: string;
+  practiceName?: string;
+  practiceId?: string;
+  articleId?: string;
+  title?: string;
+  year?: number;
+  source?: string;
+  article?: Article;
+  practice?: {
+    id?: string;
+    name?: string;
+  };
+  description?: string;
+  analystComments?: string;
+  [key: string]: any;
+}
+
+interface Article {
+  _id: string;
+  title: string;
+  year: number;
+  authors: string;
+  journal: string;
+  [key: string]: any;
 }

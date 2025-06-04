@@ -8,6 +8,7 @@ import { EvidenceModule } from './api/evidence/evidence.module';
 import { ModerationModule } from './api/moderation/moderation.module';
 import { RatingModule } from './api/rating/rating.module';
 import { SearchModule } from './api/search/search.module';
+import { PracticeModule } from './api/practice/practice.module';
 
 /**
  * Root application module
@@ -43,6 +44,7 @@ import { SearchModule } from './api/search/search.module';
     ModerationModule,
     RatingModule,
     SearchModule,
+    PracticeModule,
   ],
 })
 export class AppModule {}

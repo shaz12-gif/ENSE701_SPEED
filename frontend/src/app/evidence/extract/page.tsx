@@ -15,7 +15,7 @@ interface Article {
   year: number;
 }
 
-interface EvidenceFormData {
+export interface EvidenceFormData {
   practiceId: string;
   claim: string;
   supportsClaim: boolean;
@@ -49,7 +49,7 @@ export default function EvidenceExtractionPage() {
         const result = await getArticles({ status: 'approved' });
         
         if (result.success) {
-          setArticles(result.data);
+          setArticles(result.data as Article[]);
         } else {
           throw new Error(result.message || 'Failed to fetch approved articles');
         }
@@ -85,7 +85,9 @@ export default function EvidenceExtractionPage() {
         articleId: selectedArticle._id,
         title: selectedArticle.title,
         source: selectedArticle.journal,
-        year: selectedArticle.year
+        year: selectedArticle.year,
+        // Set supportsClaim based on result
+        supportsClaim: formData.result === 'agree' ? true : false
       };
       
       const result = await submitEvidence(evidenceData);
