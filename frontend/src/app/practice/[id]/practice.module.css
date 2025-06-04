@@ -1,0 +1,106 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #a8c0e0;
+  margin-bottom: 1rem;
+}
+
+.description {
+  font-size: 1.125rem;
+  color: #a0b8d8;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.section {
+  margin-bottom: 3rem;
+}
+
+.sectionTitle {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #a8c0e0;
+  margin-bottom: 1.5rem;
+}
+
+.evidenceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.evidenceCard {
+  max-width: 100%;
+  padding: 2rem;
+  border: 2px solid #2c5d95;  
+  border-radius: 12px;
+  background: rgba(15, 28, 47, 0.5);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.evidenceCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 25px rgba(44, 93, 149, 0.3);
+  border-color: #3a6cb0;
+}
+
+.evidenceTitle {
+  color: #a8c0e0;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.evidenceMeta {
+  font-size: 0.875rem;
+  color: #a0b8d8;
+  margin-bottom: 1rem;
+}
+
+.evidenceSummary {
+  color: #e1e8f0;
+  line-height: 1.6;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #4299e1;
+  color: white;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.backButton:hover {
+  background-color: #3182ce;
+}
+
+/* Loading and error states */
+.loadingState,
+.errorState {
+  text-align: center;
+  padding: 2rem;
+  color: #4a5568;
+  font-size: 1.125rem;
+}
+
+.errorState {
+  color: #e53e3e;
+}

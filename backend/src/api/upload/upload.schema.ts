@@ -1,33 +1,57 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { config } from 'dotenv';
+config();
 
-//Andrew Koves
-//20126313
+/**
+ * Author: Andrew Koves
+ * ID: 20126313
+ *
+ * Schema definition for uploaded evidence files and metadata.
+ * Supports both file uploads and evidence-only submissions.
+ */
+@Schema({
+  collection: process.env.EVIDENCE_COLLECTION,
+  timestamps: true,
+})
+export class uploadedfile extends Document {
+  // Evidence metadata
+  @Prop({ required: true })
+  practiceId: string;
 
-// Defines the schema for uploaded files (PDFs and .bib files)
-// This schema is used to store both PDF and .bib files in the database
-@Schema()
-export class UploadedFile extends Document {
-  // The filename of the uploaded file (e.g., "document.pdf" or "references.bib")
-  @Prop()
-  filename: string;
+  @Prop({ required: true })
+  claimId: string;
 
-  // Store binary data for PDFs (will be undefined for .bib files)
-  @Prop({ type: Buffer, required: false })
-  data: Buffer;
+  @Prop({ required: true })
+  supportsClaim: boolean;
 
-  // Store text data for .bib files (will be undefined for PDFs)
   @Prop({ required: false })
-  textData: string;
+  title: string;
 
-  // The MIME type of the file (e.g., "application/pdf" or "text/plain")
-  @Prop()
-  mimetype: string;
+  @Prop({ required: false })
+  source: string;
 
-  // Indicates the file type: 'pdf' for PDF files, 'bib' for .bib files
-  @Prop()
-  filetype: string; // 'pdf' or 'bib'
+  @Prop({ required: false })
+  year: number;
+
+  @Prop({ required: false })
+  description?: string;
+
+  // File-specific properties (optional)
+  @Prop({ required: false })
+  filename?: string;
+
+  @Prop({ type: Buffer, required: false })
+  data?: Buffer; // For PDF files
+
+  @Prop({ required: false })
+  textData?: string; // For BibTeX files
+
+  @Prop({ required: false })
+  mimetype?: string;
+
+  @Prop({ required: false })
+  filetype?: string; // 'pdf' or 'bib'
 }
 
-// Creates the Mongoose schema for the UploadedFile class
-export const UploadedFileSchema = SchemaFactory.createForClass(UploadedFile);
+export const uploadedfileSchema = SchemaFactory.createForClass(uploadedfile);

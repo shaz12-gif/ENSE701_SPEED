@@ -8,10 +8,9 @@ import { UploadModule } from './api/upload/upload.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    MongooseModule.forRoot(
-      process.env.DB_URI || 'mongodb://localhost:27017/default-db',
-    ),
+    MongooseModule.forRoot(process.env.DB_URI, {
+      dbName: process.env.DB_NAME,
+    }),
     UploadModule,
   ],
   controllers: [AppController],

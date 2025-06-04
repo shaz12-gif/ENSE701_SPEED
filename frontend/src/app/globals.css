@@ -1,30 +1,166 @@
-/* Global styles */
+/* 
+  Author: Andrew Koves
+  ID: 20126313
+*/
+
+/* Base styles for the entire application */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background-color: #f5f7fa;
   margin: 0;
   padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #0f1c2f;  /* Dark blue background */
+  color: #e1e8f0;      /* Light text for contrast */
 }
 
+/* Default link styling */
 a {
-  color: #0070f3;
+  color: inherit;
   text-decoration: none;
 }
 
-a:hover {
-  text-decoration: underline;
+/* Animation for page elements fading in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);  /* Start 20px below final position */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);     /* Move to final position */
+  }
 }
 
-/* Container */
+/* Main container for home page */
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;             /* Full viewport height */
+  animation: fadeIn 0.8s ease-out;
+}
+
+/* Navigation bar styling */
+.navbar {
+  background-color: #0b1625;     /* Darker blue for nav */
+  padding: 1rem 2rem;
+}
+
+/* Navigation list styling */
+.navbar ul {
+  list-style: none;
+  display: flex;                 /* Horizontal list */
+  gap: 2rem;                     /* Space between items */
+  padding: 0;
+}
+
+/* Navigation links */
+.navbar li a {
+  color: #a8c0e0;               /* Light blue for links */
+  font-weight: 500;
+}
+
+/* Navigation hover effect */
+.navbar li a:hover {
+  color: #fff;
+}
+
+/* Hero section styling */
+.hero {
+  flex: 1;
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+/* Main title in hero section */
+.hero h1 {
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+/* Subtitle in hero section */
+.hero h2 {
+  font-size: 1.25rem;
+  color: #a0b8d8;
+  margin-bottom: 2rem;
+}
+
+/* Card container for information sections */
+.info-cards {
+  display: flex;
+  flex-wrap: wrap;              /* Responsive grid */
+  justify-content: center;
+  gap: 4rem; 
+  margin: 3rem 0;
+  padding: 2rem;
+}
+
+/* Individual info cards */
+.info-cards div {
+  max-width: 280px; 
+  padding: 2rem;
+  border: 2px solid #2c5d95;  
+  border-radius: 12px;
+  background: rgba(15, 28, 47, 0.5);  /* Semi-transparent background */
+  backdrop-filter: blur(5px);          /* Glass effect */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Card hover effects */
+.info-cards div:hover {
+  transform: translateY(-5px);         /* Slight lift effect */
+  box-shadow: 0 6px 25px rgba(44, 93, 149, 0.3);
+  border-color: #3a6cb0;
+}
+
+/* Card titles */
+.info-cards h3 {
+  color: #a8c0e0;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+/* Card content */
+.info-cards p {
+  color: #e1e8f0;
+  line-height: 1.6;
+}
+
+/* Call-to-action buttons container */
+.cta-buttons {
+  margin: 2rem 0;
+}
+
+/* Button styling */
+.cta-buttons button {
+  padding: 0.75rem 1.5rem;
+  margin: 0 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #1f3b63;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+/* Secondary button variant */
+.cta-buttons .secondary {
+  background-color: #2c5d95;
+}
+
+/* Button hover effect */
+.cta-buttons button:hover {
+  background-color: #3a6cb0;
+}
+
+/* Generic container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-/* Header */
+/* Header section */
 .header {
   margin-bottom: 2rem;
 }
@@ -34,23 +170,24 @@ a:hover {
   margin: 0 0 1rem 0;
 }
 
-/* Form Styles */
 .submit-form {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 2rem auto;
   padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: rgba(15, 28, 47, 0.5);
+  backdrop-filter: blur(10px);
+  border: 2px solid #2c5d95;
+  border-radius: 12px;
+  color: #e1e8f0;
 }
 
 .submit-form h1 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  color: #333;
-  font-size: 1.8rem;
+  color: #a8c0e0;
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
+/* Form group styling */
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -58,6 +195,7 @@ a:hover {
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
+  color: #a8c0e0;
   font-weight: 500;
 }
 
@@ -66,44 +204,86 @@ a:hover {
 .form-group textarea {
   width: 100%;
   padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #2c5d95;
+  border-radius: 6px;
+  color: #e1e8f0;
   font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #f9f9f9;
 }
 
-.form-group textarea {
-  min-height: 100px;
-  resize: vertical;
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.9); /* Lighter background for better contrast */
+  border: 1px solid #2c5d95;
+  border-radius: 6px;
+  color: #0f1c2f; /* Dark blue text color to match theme */
+  font-size: 1rem;
 }
 
+/* Style the dropdown options */
+.form-group select option {
+  background: #fff; /* White background for dropdown items */
+  color: #0f1c2f; /* Dark blue text for options */
+  padding: 0.5rem;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3a6cb0;
+  box-shadow: 0 0 0 2px rgba(58, 108, 176, 0.2);
+}
+
+/* Claim support section */
+.claim-support {
+  background: rgba(44, 93, 149, 0.2);
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: -0.5rem;
+}
+
+/* Checkbox label styling */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+/* Form actions button styling */
 .form-actions {
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
 }
 
-button {
+.form-actions button {
   padding: 0.75rem 1.5rem;
-  background-color: #0070f3;
-  color: white;
+  background-color: #2c5d95;
+  color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s;
 }
 
-button:hover {
-  background-color: #0060df;
+.form-actions button:hover {
+  background-color: #3a6cb0;
 }
 
-button:disabled {
-  background-color: #ccc;
+.form-actions button:disabled {
+  background-color: rgba(44, 93, 149, 0.5);
   cursor: not-allowed;
 }
 
+/* Loading state styling */
 .loading {
   text-align: center;
   padding: 2rem;
@@ -111,22 +291,85 @@ button:disabled {
   color: #666;
 }
 
+/* Error message styling */
 .error-message {
-  background-color: #fff0f0;
-  border: 1px solid #ffcdd2;
-  color: #d32f2f;
-  padding: 0.75rem;
-  border-radius: 4px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #fecaca;
+  padding: 1rem;
+  border-radius: 6px;
   margin-bottom: 1.5rem;
 }
 
-/* Responsive */
+/* Footer */
+.footer {
+  background: #0b1625;
+  color: #7a94b7;
+  text-align: center;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Animated Background Lights */
+.light-container {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  z-index: -1;                /* Behind all content */
+}
+
+.light {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);        /* Creates the glow effect */
+  opacity: 0.2;
+  animation: moveBlob 20s infinite ease-in-out alternate;
+}
+
+/* First light element */
+.light1 {
+  width: 400px;
+  height: 400px;
+  background: #4b8dd4;
+  top: 10%;
+  left: -10%;
+}
+
+/* Second light element */
+.light2 {
+  width: 500px;
+  height: 500px;
+  background: #5378a5;
+  top: 60%;
+  right: -10%;
+  animation-delay: 5s;        /* Offset animation for variety */
+}
+
+/* Animation for light movement */
+@keyframes moveLight {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(100px, -50px) scale(1.2);
+  }
+  100% {
+    transform: translate(-50px, 100px) scale(1);
+  }
+}
+
+/* Responsive design adjustments */
 @media (max-width: 768px) {
   .submit-form {
     padding: 1.5rem;
   }
   
   .form-actions {
-    flex-direction: column;
+    flex-direction: column;   /* Stack buttons on mobile */
   }
 }

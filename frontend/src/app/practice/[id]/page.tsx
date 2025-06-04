@@ -1,95 +1,106 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import styles from './practice.module.css';
+
+interface Evidence {
+  _id: string;
+  practiceId: string;
+  title: string;
+  source: string;
+  year: number;
+  description: string;
+  filename?: string;
+}
 
 export default function PracticePage() {
   const router = useRouter();
   const params = useParams();
-  const [practice, setPractice] = useState<any>(null);
-  const [evidence, setEvidence] = useState<any[]>([]);
+  const [evidence, setEvidence] = useState<Evidence[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [practiceId, setPracticeId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (params?.id) {
-      setPracticeId(parseInt(params.id as string));
-    }
-  }, [params]);
-
-  useEffect(() => {
-    if (practiceId === null) return;
-
-    const fetchPracticeData = async () => {
+    const fetchEvidence = async () => {
       try {
-        // Replace with real fetch later
-        const samplePractices = [
-          { id: 1, name: 'Test-Driven Development (TDD)', description: 'Writing tests before code to guide development.' },
-          { id: 2, name: 'Continuous Integration', description: 'Frequently merging code changes to a shared repository.' },
-          { id: 3, name: 'Pair Programming', description: 'Two programmers working together at one workstation.' },
-          { id: 4, name: 'Agile Development', description: 'Iterative approach to software development.' },
-          { id: 5, name: 'Code Reviews', description: 'Systematic examination of code by peers.' },
-        ];
+        console.log('Fetching evidence for practice:', params?.id);
+        const response = await fetch(`http://localhost:3001/api/upload/practice/${params?.id}`);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error('Failed to fetch evidence');
+        }
 
-        const practice = samplePractices.find(p => p.id === practiceId);
-
-        const sampleEvidence = [
-          { id: 1, title: 'Study on TDD Effectiveness', authors: 'Smith et al.', year: 2022, summary: 'Found 25% reduction in defects when using TDD.' },
-          { id: 2, title: 'Case Study: TDD in Enterprise', authors: 'Johnson and Brown', year: 2021, summary: 'Implementation of TDD in enterprise setting showed improved code quality.' }
-        ];
-
-        setPractice(practice);
-        setEvidence(sampleEvidence);
+        const data = await response.json();
+        console.log('Fetched evidence:', data);
+        setEvidence(data);
         setLoading(false);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        console.error('Error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch evidence');
         setLoading(false);
       }
     };
 
-    fetchPracticeData();
-  }, [practiceId]);
+    if (params?.id) {
+      fetchEvidence();
+    }
+  }, [params]);
 
-  if (loading) return <div>Loading practice data...</div>;
-  if (error) return <div>Error loading practice: {error}</div>;
-  if (!practice) return <div>Practice not found</div>;
+  if (loading) return <div className={styles.loadingState}>Loading evidence...</div>;
+  if (error) return <div className={styles.errorState}>{error}</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">{practice.name}</h1>
-      <p className="text-lg mb-6">{practice.description}</p>
-
-      <h2 className="text-2xl font-semibold mb-4">Evidence</h2>
-      {evidence.length > 0 ? (
-        <div className="grid gap-4">
-          {evidence.map(item => (
-            <div key={item.id} className="border rounded-lg p-4 shadow-sm">
-              <h3 className="text-xl font-semibold">{item.title}</h3>
-              <p className="text-gray-600">
-                {item.authors} ({item.year})
-              </p>
-              <p className="mt-2">{item.summary}</p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p>No evidence found for this practice.</p>
-      )}
-
-      <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">Submit New Evidence</h2>
-        {/* Evidence submission form goes here */}
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Evidence for Practice {params?.id}</h1>
       </div>
 
-      <div className="mt-8">
-        <button
-          onClick={() => router.push('/practices')}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Back to Practices
-        </button>
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Submitted Evidence</h2>
+        {evidence.length > 0 ? (
+          <div className={styles.evidenceGrid}>
+            {evidence.map(item => (
+              <div key={item._id} className={styles.evidenceCard}>
+                <h3 className={styles.evidenceTitle}>{item.title}</h3>
+                <p className={styles.evidenceMeta}>
+                  {item.source} ({item.year})
+                </p>
+                <p className={styles.evidenceSummary}>{item.description}</p>
+                {item.filename && (
+                  <a 
+                    href={`http://localhost:3001/api/upload/${item._id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.fileLink}
+                  >
+                    View File
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No evidence found for this practice.</p>
+        )}
       </div>
+
+      <button
+        onClick={() => router.push('/submit')}
+        className={styles.submitButton}
+      >
+        Submit New Evidence
+      </button>
+
+      <button
+        onClick={() => router.push('/practices')}
+        className={styles.backButton}
+      >
+        Back to Practices
+      </button>
     </div>
   );
 }

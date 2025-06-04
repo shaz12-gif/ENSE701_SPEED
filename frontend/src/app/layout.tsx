@@ -14,23 +14,21 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
+      <head />
       <body>
-        <div className="container">
-          <header className="header">
-            <h1>SPEED Database</h1>
-            <nav>
-              <ul style={{ display: 'flex', gap: '1rem', listStyle: 'none', padding: 0 }}>
-                <li><Link href="/">Home</Link></li>
-                <li><Link href="/practices">Practices</Link></li>
-                <li><Link href="/submit">Submit Evidence</Link></li>
-              </ul>
-            </nav>
-          </header>
-          <main>{children}</main>
-          <footer style={{ marginTop: '2rem', textAlign: 'center', color: '#666', borderTop: '1px solid #eaeaea', paddingTop: '1rem' }}>
-            © {new Date().getFullYear()} SPEED Database
-          </footer>
+        <div className="light-container">
+          <div className="light light1"></div>
+          <div className="light light2"></div>
         </div>
+        <nav className="navbar">
+          <ul>
+            <li><Link href="/">Home</Link></li>
+            <li><Link href="/practices">Practices</Link></li>
+            <li><Link href="/submit">Submit Evidence</Link></li>
+          </ul>
+        </nav>
+        {children}
+        <footer className="footer">© 2025 SPEED Database</footer>
       </body>
     </html>
   );
