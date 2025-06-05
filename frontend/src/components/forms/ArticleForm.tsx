@@ -110,20 +110,24 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
     }
   };
 
+  interface ParsedBibTeXData extends ArticleFormData {
+    booktitle?: string;
+  }
+
   // Simple BibTeX parser function
-  const parseBibTeX = (bibText: string) => {
+  const parseBibTeX = (bibText: string): ParsedBibTeXData | null => {
     try {
       // Match the first entry in the BibTeX file
-      const entryMatch = bibText.match(/@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}/);
+      const entryMatch = bibText.match(/@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}$/);
       if (!entryMatch) return null;
       
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const entryType = entryMatch[1]; // article, inproceedings, etc.
       const entries: Record<string, string> = {};
       
-      // Extract all key-value pairs
+      // Extract all key-value pairs (improved regex)
       const fieldsText = entryMatch[3];
-      const fieldMatches = [...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)(?=\},|\}$)/g)];
+      const fieldMatches = [...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)\}\s*,?/g)];
       
       fieldMatches.forEach(match => {
         const key = match[1].toLowerCase();
@@ -131,7 +135,6 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
         
         // Handle the authors field specially to convert BibTeX format to a readable format
         if (key === 'author') {
-          // Convert BibTeX author format to a readable format
           value = value
             .split(' and ')
             .map(author => author.trim())
@@ -145,9 +148,8 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
       return {
         title: entries.title || '',
         authors: entries.author || '',
-        journal: entries.journal || '',
-        booktitle: entries.booktitle || '',
-        year: entries.year || '',
+        journal: entries.journal || entries.booktitle || '',
+        year: entries.year ? Number(entries.year) : new Date().getFullYear(),
         volume: entries.volume || '',
         number: entries.number || '',
         pages: entries.pages || '',
