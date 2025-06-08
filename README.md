@@ -1,6 +1,9 @@
 # ENSE701_SPEED
 
 Welcome to the ENSE701_SPEED project!
+Andrew Koves = OO25
+Shazia Sultani = Shaz12
+Yuna = di4bolic4l
 
 ## Getting Started
 
