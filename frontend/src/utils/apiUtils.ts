@@ -1,7 +1,12 @@
 // API utilities for making consistent API calls
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ */
 
 // Get API URL from environment variables with fallback
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 // Enable/disable debug logging based on environment
 const ENABLE_DEBUG_LOGGING = process.env.NEXT_PUBLIC_ENABLE_DEBUG_LOGGING === 'true';

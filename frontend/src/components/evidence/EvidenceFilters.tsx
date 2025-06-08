@@ -1,3 +1,11 @@
+/**
+ * EvidenceFilters component
+ * Provides filter controls for evidence browsing.
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ */
+
 interface Practice {
   id: string;
   name: string;
@@ -17,23 +25,23 @@ interface FiltersProps {
 export default function EvidenceFilters({ practices, filters, onFilterChange }: FiltersProps) {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
     onFilterChange(name, value);
   };
-  
+
   const clearFilters = () => {
     onFilterChange('practiceId', '');
     onFilterChange('claim', '');
     onFilterChange('year', '');
     onFilterChange('result', '');
   };
-  
+
   return (
     <div className="bg-gray-50 p-4 rounded-lg">
       <h2 className="text-lg font-semibold mb-4">Filter Evidence</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="form-group">
           <label htmlFor="practiceId" className="block text-sm font-medium mb-1">
@@ -54,7 +62,7 @@ export default function EvidenceFilters({ practices, filters, onFilterChange }: 
             ))}
           </select>
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="claim" className="block text-sm font-medium mb-1">
             Claim (contains)
@@ -69,7 +77,7 @@ export default function EvidenceFilters({ practices, filters, onFilterChange }: 
             placeholder="e.g., quality, productivity"
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="year" className="block text-sm font-medium mb-1">
             Publication Year
@@ -89,7 +97,7 @@ export default function EvidenceFilters({ practices, filters, onFilterChange }: 
             ))}
           </select>
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="result" className="block text-sm font-medium mb-1">
             Result
@@ -108,7 +116,7 @@ export default function EvidenceFilters({ practices, filters, onFilterChange }: 
           </select>
         </div>
       </div>
-      
+
       {(filters.practiceId || filters.claim || filters.year || filters.result) && (
         <div className="mt-4 text-right">
           <button

@@ -1,3 +1,11 @@
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * Article Submission Form - Allows users to submit new research articles manually or via BibTeX import.
+ */
+
 import { useState, useEffect } from 'react';
 
 export interface ArticleFormData {
@@ -117,22 +125,25 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
   // Simple BibTeX parser function
   const parseBibTeX = (bibText: string): ParsedBibTeXData | null => {
     try {
-      // Match the first entry in the BibTeX file
-      const entryMatch = bibText.match(/@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}$/);
+      // Normalize line endings and trim trailing whitespace
+      const normalized = bibText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+
+      // Match the first entry in the BibTeX file (robust to line endings)
+      const entryMatch = normalized.match(/@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}$/m);
       if (!entryMatch) return null;
-      
+
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const entryType = entryMatch[1]; // article, inproceedings, etc.
+      const entryType = entryMatch[1];
       const entries: Record<string, string> = {};
-      
-      // Extract all key-value pairs (improved regex)
+
+      // Extract all key-value pairs (robust to line endings)
       const fieldsText = entryMatch[3];
       const fieldMatches = [...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)\}\s*,?/g)];
-      
+
       fieldMatches.forEach(match => {
         const key = match[1].toLowerCase();
         let value = match[2].trim();
-        
+
         // Handle the authors field specially to convert BibTeX format to a readable format
         if (key === 'author') {
           value = value
@@ -140,10 +151,10 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
             .map(author => author.trim())
             .join(', ');
         }
-        
+
         entries[key] = value;
       });
-      
+
       // Map common BibTeX fields to our form fields
       return {
         title: entries.title || '',
@@ -193,19 +204,13 @@ export default function ArticleForm({ onSubmit, isSubmitting, resetForm = false 
       // If a BibTeX file is provided, create FormData with just the file
       const formDataWithFile = new FormData();
       formDataWithFile.append('bibFile', bibFile);
-      
-      // Explicitly indicate this is a BibTeX-only submission
       formDataWithFile.append('submissionType', 'bibtex');
-      
-      // Call onSubmit with just the file data
-      console.log("Submitting BibTeX file:", bibFile.name);
       onSubmit(formDataWithFile);
       return;
     }
     
     // Standard form validation for manual entry
     if (validate()) {
-      console.log("Submitting manual form data");
       onSubmit(formData);
     }
   };

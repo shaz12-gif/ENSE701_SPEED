@@ -1,50 +1,37 @@
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * Moderation Dashboard Page - Allows moderators to review, approve, and reject submitted articles.
+ * Only articles with "pending" status are shown for review.
+ */
+
 "use client";
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
+import { Article } from '@/types';
 
-interface Article {
-  _id: string;
-  title: string;
-  authors: string;
-  journal: string;
-  year: number;
-  volume?: string;
-  pages?: string;
-  doi?: string;
-  submittedBy: string;
-  createdAt: string;
-}
-
-/**
- * Moderation Dashboard
- * 
- * This page allows moderators to review, approve, and reject submitted articles.
- * Only articles with "pending" status are shown for review.
- */
 export default function ModerationDashboard() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processingIds, setProcessingIds] = useState<string[]>([]);
-  
+
   // Fetch pending articles
   useEffect(() => {
     const fetchPendingArticles = async () => {
       try {
         const response = await fetch('/api/articles?status=pending');
-        
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}`);
         }
-        
         const data = await response.json();
-        
         if (!data.success) {
           throw new Error(data.message || 'Failed to fetch pending articles');
         }
-        
         setArticles(data.data);
       } catch (err) {
         console.error('Error fetching pending articles:', err);
@@ -53,37 +40,27 @@ export default function ModerationDashboard() {
         setLoading(false);
       }
     };
-    
     fetchPendingArticles();
   }, []);
-  
+
   // Handle article approval
   const handleApprove = async (id: string) => {
     setProcessingIds(prev => [...prev, id]);
-    
     try {
       const response = await fetch(`/api/moderation/${id}/approve`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          moderatorId: 'current-moderator', // In a real app, this would be the logged-in user's ID
+          moderatorId: 'current-moderator', // Replace with real moderator ID
           notes: 'Approved after review'
         })
       });
-      
       const data = await response.json();
-      
       if (!response.ok) {
         throw new Error(data.message || `Failed to approve article ${id}`);
       }
-      
       toast.success('Article approved successfully');
-      
-      // Remove the approved article from the list
       setArticles(prev => prev.filter(article => article._id !== id));
-      
     } catch (err) {
       console.error('Error approving article:', err);
       toast.error(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -91,34 +68,25 @@ export default function ModerationDashboard() {
       setProcessingIds(prev => prev.filter(itemId => itemId !== id));
     }
   };
-  
+
   // Handle article rejection
   const handleReject = async (id: string) => {
     setProcessingIds(prev => [...prev, id]);
-    
     try {
       const response = await fetch(`/api/moderation/${id}/reject`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          moderatorId: 'current-moderator', // In a real app, this would be the logged-in user's ID
+          moderatorId: 'current-moderator', // Replace with real moderator ID
           notes: 'Rejected after review'
         })
       });
-      
       const data = await response.json();
-      
       if (!response.ok) {
         throw new Error(data.message || `Failed to reject article ${id}`);
       }
-      
       toast.success('Article rejected');
-      
-      // Remove the rejected article from the list
       setArticles(prev => prev.filter(article => article._id !== id));
-      
     } catch (err) {
       console.error('Error rejecting article:', err);
       toast.error(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -126,7 +94,7 @@ export default function ModerationDashboard() {
       setProcessingIds(prev => prev.filter(itemId => itemId !== id));
     }
   };
-  
+
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -135,7 +103,7 @@ export default function ModerationDashboard() {
       day: 'numeric'
     });
   };
-  
+
   // Loading state
   if (loading) {
     return (
@@ -148,7 +116,7 @@ export default function ModerationDashboard() {
       </div>
     );
   }
-  
+
   // Error state
   if (error) {
     return (
@@ -156,7 +124,7 @@ export default function ModerationDashboard() {
         <h1 className="text-3xl font-semibold mb-6">Moderation Dashboard</h1>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <p>Error: {error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-3 bg-red-500 hover:bg-red-600 text-white py-1 px-4 rounded"
           >
@@ -166,28 +134,28 @@ export default function ModerationDashboard() {
       </div>
     );
   }
-  
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-semibold">Moderation Dashboard</h1>
-        <Link 
-          href="/articles" 
+        <Link
+          href="/articles"
           className="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-md text-sm font-medium"
         >
           View All Articles
         </Link>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
           <h2 className="font-medium text-lg">Articles Awaiting Moderation</h2>
           <p className="text-sm text-gray-600 mt-1">
-            {articles.length === 0 ? 'No pending articles' : 
-             `${articles.length} article${articles.length === 1 ? '' : 's'} waiting for review`}
+            {articles.length === 0 ? 'No pending articles' :
+              `${articles.length} article${articles.length === 1 ? '' : 's'} waiting for review`}
           </p>
         </div>
-        
+
         {articles.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <p>No articles waiting for review</p>
@@ -207,13 +175,13 @@ export default function ModerationDashboard() {
                   </p>
                   {article.doi && <p>DOI: {article.doi}</p>}
                 </div>
-                
+
                 <div className="mt-3 flex items-center text-xs text-gray-500">
                   <span>Submitted by {article.submittedBy || 'Anonymous'}</span>
                   <span className="mx-2">•</span>
                   <span>{formatDate(article.createdAt)}</span>
                 </div>
-                
+
                 <div className="mt-4 flex space-x-4">
                   <button
                     onClick={() => handleApprove(article._id)}
@@ -255,7 +223,7 @@ export default function ModerationDashboard() {
           </div>
         )}
       </div>
-      
+
       <div className="mt-8 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
         <h3 className="font-medium text-yellow-800">Moderation Guidelines</h3>
         <ul className="mt-2 text-sm text-yellow-700 list-disc list-inside space-y-1">

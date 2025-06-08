@@ -1,3 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * Evidence Search & Browse Page - Allows users to search and explore evidence for software engineering practices.
+ */
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -6,45 +15,14 @@ import EvidenceTable from '@/components/evidence/EvidenceTable';
 import { getEvidence } from '@/services/api';
 import { Evidence, Practice, SortableField } from '@/types';
 
-// Enhance your Evidence interface to better handle nested properties
-// interface Evidence {
-//   _id: string;
-//   claim: string;
-//   result: 'agree' | 'disagree' | 'mixed';
-//   typeOfResearch: string;
-//   participantType: string;
-//   practiceId: string;
-//   article?: {
-//     title: string;
-//     authors: string;
-//     year: number;
-//   };
-//   // Add an index signature to allow string key access
-//   [key: string]: string | number | boolean | object | undefined;
-// }
-
-// interface Practice {
-//   id?: string;
-//   _id?: string; // Support both id formats
-//   name: string;
-// }
-
-// Define type for sortable fields
-// type SortField = 'claim' | 'result' | 'typeOfResearch' | 'participantType' | string;
-// type SortDirection = 'asc' | 'desc';
-
-/**
- * Evidence Search & Browse Page
- * Allows users to search and explore evidence for software engineering practices
- */
 export default function EvidenceBrowsePage() {
   const router = useRouter();
-  
-  // State for evidence data - add proper type
+
+  // State for evidence data
   const [evidence, setEvidence] = useState<Evidence[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null); // Fix Error #1
-  
+  const [error, setError] = useState<string | null>(null);
+
   // State for filtering
   const [filters, setFilters] = useState({
     practiceId: '',
@@ -54,14 +32,14 @@ export default function EvidenceBrowsePage() {
     typeOfResearch: '',
     participantType: ''
   });
-  
-  // State for sorting - add proper types
+
+  // State for sorting
   const [sortField, setSortField] = useState<SortableField>('claim');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // Fix Error #7
-  
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   // Fetch practices for filter dropdown
   const [practices, setPractices] = useState<Practice[]>([]);
-  
+
   useEffect(() => {
     const fetchPractices = async () => {
       try {
@@ -73,40 +51,39 @@ export default function EvidenceBrowsePage() {
         console.error('Error fetching practices:', err);
       }
     };
-    
+
     fetchPractices();
   }, []);
-  
+
   // Fetch evidence based on filters
   useEffect(() => {
     const fetchEvidenceData = async () => {
       setIsLoading(true);
-      
+
       try {
         // Filter out empty filter values
         const filterParams = Object.fromEntries(
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           Object.entries(filters).filter(([_, v]) => v !== '')
         );
-        
+
         const response = await getEvidence(filterParams);
-        
+
         if (response.success) {
-          setEvidence(response.data);
+          setEvidence(response.data as Evidence[]);
         } else {
           throw new Error(response.message || 'Failed to fetch evidence');
         }
       } catch (err) {
         console.error('Error fetching evidence:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred while fetching evidence'); // Fix Error #1
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching evidence');
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchEvidenceData();
   }, [filters]);
-  
+
   // Handle filter changes
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -115,7 +92,7 @@ export default function EvidenceBrowsePage() {
       [name]: value
     }));
   };
-  
+
   // Clear all filters
   const clearFilters = () => {
     setFilters({
@@ -127,91 +104,69 @@ export default function EvidenceBrowsePage() {
       participantType: ''
     });
   };
-  
-  // Handle sorting - Fix Error #2
+
+  // Handle sorting
   const handleSort = (field: SortableField) => {
-    // If clicking on the same field, toggle direction
     if (field === sortField) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
       setSortDirection('asc');
     }
-    
-    // Sort the evidence - improved type safety
+
+    // Sort the evidence
     const sorted = [...evidence].sort((a, b) => {
-      // Handle nested fields like article.title
       if (field.includes('.')) {
         const [parentField, childField] = field.split('.');
-        
-        // Type guard to ensure parent exists and is an object
         const aParent = a[parentField];
         const bParent = b[parentField];
-        
-        // Skip comparison if either parent is missing
         if (!aParent || !bParent || typeof aParent !== 'object' || typeof bParent !== 'object') {
           return 0;
         }
-        
-        // Now we know both parents are objects, access child properties safely
-        // TypeScript still needs a type assertion here
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const aValue = (aParent as Record<string, any>)[childField];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bValue = (bParent as Record<string, any>)[childField];
-        
-        // Handle different value types
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortDirection === 'asc' 
+          return sortDirection === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortDirection === 'asc' 
-            ? aValue - bValue 
+          return sortDirection === 'asc'
+            ? aValue - bValue
             : bValue - aValue;
         }
-        
-        // If types don't match or are undefined, convert to strings as fallback
         return sortDirection === 'asc'
           ? String(aValue).localeCompare(String(bValue))
           : String(bValue).localeCompare(String(aValue));
       } else {
-        // Handle direct properties - this needs improved type safety too
         const aValue = a[field as keyof Evidence];
         const bValue = b[field as keyof Evidence];
-        
-        // Handle string comparison
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortDirection === 'asc' 
+          return sortDirection === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         }
-        
-        // Handle number comparison  
         if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortDirection === 'asc' 
-            ? aValue - bValue 
+          return sortDirection === 'asc'
+            ? aValue - bValue
             : bValue - aValue;
         }
-        
-        // Handle boolean comparison
         if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
           return sortDirection === 'asc'
             ? (aValue ? 1 : 0) - (bValue ? 1 : 0)
             : (bValue ? 1 : 0) - (aValue ? 1 : 0);
         }
-        
-        // Fallback to string comparison
         return sortDirection === 'asc'
           ? String(aValue).localeCompare(String(bValue))
           : String(bValue).localeCompare(String(aValue));
       }
     });
-    
+
     setEvidence(sorted);
   };
-  
-  // Handle row click to navigate to detail page - Fix Error #4
+
+  // Handle row click to navigate to detail page
   const handleRowClick = (id: string) => {
     router.push(`/evidence/${id}`);
   };
@@ -219,7 +174,7 @@ export default function EvidenceBrowsePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Evidence Database</h1>
-      
+
       <div className="bg-gray-50 p-4 rounded-lg border mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -239,7 +194,7 @@ export default function EvidenceBrowsePage() {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label htmlFor="claim" className="block text-sm font-medium mb-1">Claim</label>
             <input
@@ -252,7 +207,7 @@ export default function EvidenceBrowsePage() {
               className="w-full border rounded-md py-2 px-3"
             />
           </div>
-          
+
           <div>
             <label htmlFor="year" className="block text-sm font-medium mb-1">Publication Year</label>
             <input
@@ -265,7 +220,7 @@ export default function EvidenceBrowsePage() {
               className="w-full border rounded-md py-2 px-3"
             />
           </div>
-          
+
           <div>
             <label htmlFor="result" className="block text-sm font-medium mb-1">Result</label>
             <select
@@ -281,7 +236,7 @@ export default function EvidenceBrowsePage() {
               <option value="mixed">Mixed</option>
             </select>
           </div>
-          
+
           <div>
             <label htmlFor="typeOfResearch" className="block text-sm font-medium mb-1">Research Type</label>
             <select
@@ -299,7 +254,7 @@ export default function EvidenceBrowsePage() {
               <option value="other">Other</option>
             </select>
           </div>
-          
+
           <div>
             <label htmlFor="participantType" className="block text-sm font-medium mb-1">Participant Type</label>
             <select
@@ -317,7 +272,7 @@ export default function EvidenceBrowsePage() {
             </select>
           </div>
         </div>
-        
+
         <div className="mt-4 flex justify-end">
           <button
             onClick={clearFilters}
@@ -327,7 +282,7 @@ export default function EvidenceBrowsePage() {
           </button>
         </div>
       </div>
-      
+
       <div className="mb-4 flex justify-between items-center">
         <p className="text-gray-600">
           Found <span className="font-bold">{evidence.length}</span> results
@@ -339,7 +294,7 @@ export default function EvidenceBrowsePage() {
           Submit New Evidence
         </button>
       </div>
-      
+
       {isLoading ? (
         <div className="text-center py-8">
           <p className="text-lg">Loading evidence data...</p>

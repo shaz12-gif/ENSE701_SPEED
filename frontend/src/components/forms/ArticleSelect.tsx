@@ -1,3 +1,11 @@
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * Article Select Component - Allows users to search and select an approved research article from a list.
+ */
+
 import { useState } from 'react';
 
 interface Article {

@@ -1,6 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Represents an article in the SPEED database
+ * Centralized shared types and interfaces for SPEED frontend
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
  */
+
+// Article as stored in the database
 export interface Article {
   _id: string;
   title: string;
@@ -14,13 +21,25 @@ export interface Article {
   submittedBy?: string;
   createdAt: string;
   status: 'pending' | 'approved' | 'rejected';
+  [key: string]: any;
 }
 
-/**
- * Represents evidence for a software engineering practice
- */
+// Article form data (for submission)
+export interface ArticleFormData {
+  title: string;
+  authors: string;
+  journal: string;
+  year: number;
+  volume?: string;
+  number?: string;
+  pages?: string;
+  doi?: string;
+}
+
+// Evidence as stored in the database
 export interface Evidence {
   _id: string;
+  filename?: string;
   claim: string;
   result: 'agree' | 'disagree' | 'mixed';
   typeOfResearch: string;
@@ -31,57 +50,55 @@ export interface Evidence {
     title: string;
     authors: string;
     year: number;
+    journal?: string;
+    _id?: string;
   };
-  // Add index signature to allow string key access
+
+
+  practice?: {
+    id?: string;
+    _id?: string;
+    name?: string;
+  };
+  description?: string;
+  analystComments?: string;
+  supportsClaim?: boolean;
   [key: string]: string | number | boolean | object | undefined;
 }
 
-/**
- * Represents a software engineering practice
- */
-export interface Practice {
-  id?: string;
-  _id?: string; // Support both id formats
-  name: string;
-}
-
-// Add this to your types file
-export interface EvidenceDetail {
-  _id: string;
-  articleId: string;
+// Evidence form data (for submission)
+export interface EvidenceFormData {
   practiceId: string;
   claim: string;
   supportsClaim: boolean;
   result: 'agree' | 'disagree' | 'mixed';
-  typeOfResearch?: string;
+  typeOfResearch: string;
   participantType?: string;
-  description?: string;
   analystComments?: string;
+  description?: string;
+  articleId?: string;
   title?: string;
-  practice?: {
-    name: string;
-  };
-  article?: {
-    _id: string;
-    title: string;
-    authors: string;
-    journal: string;
-    year: number;
-    volume?: string;
-    number?: string;
-    pages?: string;
-    doi?: string;
-    submittedBy?: string;
-    createdAt: string;
-    status: 'pending' | 'approved' | 'rejected';
-    moderator?: {
-      id: string;
-      notes: string;
-    };
-  };
+  source?: string;
+  year?: number;
 }
 
-// Define the SortableField type with all possible values
-export type SortableField = 'claim' | 'result' | 'typeOfResearch' | 'participantType' | 'title' | 'year' | 'authors' | 'practiceName' | 'averageRating' | 'createdAt';
+// Practice as stored in the database
+export interface Practice {
+  id?: string;
+  _id?: string;
+  name: string;
+  description?: string;
+  evidences?: string[];
+  evidenceCount?: number;
+}
 
-// Your other existing types stay here
+// For sortable fields in tables
+export type SortableField = 'claim' | 'practiceName' | 'result' | 'year' | 'typeOfResearch' | 'participantType' | 'title' | 'averageRating';
+
+// For ArticleCard action buttons
+export interface ActionButton {
+  label: string;
+  onClick: () => void;
+  className?: string;
+  disabled?: boolean;
+}

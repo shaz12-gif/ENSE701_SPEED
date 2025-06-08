@@ -1,24 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Author: Andrew Koves
- * ID: 20126313
- * 
- * EvidenceBrowsePage component
- * Allows users to search and browse all extracted evidence,
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * Evidence Browse Page - Allows users to search and browse all extracted evidence,
  * with filtering and sorting options.
  */
 
 "use client";
+
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { searchEvidence, getPractices } from '@/services/api';
 import EvidenceFilters from '@/components/evidence/EvidenceFilters';
 import EvidenceTable from '@/components/evidence/EvidenceTable';
 import EvidenceCards from '@/components/evidence/EvidenceCards';
-// Import the shared SortableField type
 import { Evidence, SortableField } from '@/types';
 
-// Keep this interface since it's not in your types file yet
+// Practice type for filter dropdown
 interface Practice {
   id: string;
   name: string;
@@ -51,7 +51,6 @@ export default function EvidenceBrowsePage() {
     result: initialResult as ('agree' | 'disagree' | 'mixed' | ''),
   });
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
-  // Use the imported SortableField type here
   const [sortField, setSortField] = useState<SortableField>('claim');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -154,7 +153,6 @@ export default function EvidenceBrowsePage() {
     }));
   };
 
-  // Make sure this function uses the imported SortableField type
   const handleSort = (field: SortableField) => {
     if (sortField === field) {
       // Toggle direction if same field
@@ -174,8 +172,8 @@ export default function EvidenceBrowsePage() {
 
       switch (sortField) {
         case 'practiceName':
-          fieldValueA = a.practiceName || '';
-          fieldValueB = b.practiceName || '';
+          fieldValueA = (a as any).practiceName || '';
+          fieldValueB = (b as any).practiceName || '';
           break;
         case 'claim':
           fieldValueA = a.claim || '';
@@ -186,7 +184,6 @@ export default function EvidenceBrowsePage() {
           fieldValueB = b.result || '';
           break;
         case 'year':
-          // Handle both nested and flat structures
           fieldValueA = a.article?.year || a.year || 0;
           fieldValueB = b.article?.year || b.year || 0;
           break;

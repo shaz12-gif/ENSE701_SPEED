@@ -1,6 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * EvidenceCards component
+ * Displays a grid of evidence cards for quick browsing.
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ */
+
 import { useRouter } from 'next/navigation';
 
 interface Evidence {
@@ -10,7 +17,6 @@ interface Evidence {
   typeOfResearch: string;
   participantType: string;
   practiceName?: string;
-  // Support both nested and flat structures
   title?: string;
   year?: number;
   article?: {
@@ -28,20 +34,7 @@ interface EvidenceCardsProps {
 }
 
 export default function EvidenceCards({ evidence, onCardClick }: EvidenceCardsProps) {
-  // Function to format the result for display
-  const getResultClass = (result: string) => {
-    switch (result) {
-      case 'agree':
-        return 'text-green-600';
-      case 'disagree':
-        return 'text-red-600';
-      case 'mixed':
-        return 'text-yellow-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
+  // Format result for display
   const getResultText = (result: string) => {
     switch (result) {
       case 'agree':
@@ -77,20 +70,17 @@ export default function EvidenceCards({ evidence, onCardClick }: EvidenceCardsPr
             </p>
             
             <div className="flex flex-col space-y-2">
-              {/* Research type & participant type */}
               <div className="flex justify-between text-xs text-gray-600">
                 <span>Research: {item.typeOfResearch || 'N/A'}</span>
                 <span>Participants: {item.participantType || 'N/A'}</span>
               </div>
               
-              {/* Practice name */}
               {item.practiceName && (
                 <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
                   {item.practiceName}
                 </div>
               )}
               
-              {/* Rating */}
               {item.averageRating && (
                 <div className="text-yellow-500 text-sm">
                   {formatRating(item.averageRating)}
@@ -98,7 +88,6 @@ export default function EvidenceCards({ evidence, onCardClick }: EvidenceCardsPr
               )}
             </div>
             
-            {/* Result indicator */}
             <div className="mt-3">
               <span 
                 className={`px-3 py-1 rounded-full text-sm font-medium 

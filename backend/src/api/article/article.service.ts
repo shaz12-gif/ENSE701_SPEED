@@ -101,59 +101,56 @@ export class ArticleService {
    * and extracts relevant fields such as title, authors, journal, year, etc.
    * @param bibText : The BibTeX entry as a string
    * @returns An object containing the extracted fields or null if parsing fails
-   * this turns a BibTeX entry into a structured object for the database
+   * This turns a BibTeX entry into a structured object for the database
    */
   private parseBibTeX(bibText: string) {
-    try {
-      if (!bibText?.trim()) {
-        return null;
+    // Normalize all line endings to \n and trim whitespace
+    const normalized = bibText
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .trim();
+
+    // Remove any empty lines at the end
+    const cleaned = normalized.replace(/\n+$/, '');
+
+    // Match the first entry in the BibTeX file (robust to line endings)
+    const entryMatch = cleaned.match(/@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}$/m);
+    if (!entryMatch) return null;
+
+    const entryType = entryMatch[1];
+    const entries: { [key: string]: string } = {};
+
+    // Extract all key-value pairs (robust to line endings)
+    const fieldsText = entryMatch[3];
+    const fieldMatches = [
+      ...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)\}\s*,?/g),
+    ];
+
+    fieldMatches.forEach((match) => {
+      const key = match[1].toLowerCase();
+      let value = match[2].trim();
+
+      if (key === 'author') {
+        value = value
+          .split(' and ')
+          .map((author) => author.trim())
+          .join(', ');
       }
 
-      // Match the first entry in the BibTeX file
-      const entryMatch = bibText.match(
-        /@(\w+)\s*\{\s*([^,]*),\s*([\s\S]*?)\}$/,
-      );
-      if (!entryMatch) {
-        return null;
-      }
+      entries[key] = value;
+    });
 
-      const entries: Record<string, string> = {};
-      const fieldsText = entryMatch[3];
-
-      // Use the improved regex:
-      const fieldMatches = [
-        ...fieldsText.matchAll(/\s*(\w+)\s*=\s*\{([\s\S]*?)\}\s*,?/g),
-      ];
-
-      fieldMatches.forEach((match) => {
-        const key = match[1].toLowerCase();
-        let value = match[2].trim();
-
-        if (key === 'author') {
-          value = value
-            .split(' and ')
-            .map((author) => author.trim())
-            .join(', ');
-        }
-
-        entries[key] = value;
-      });
-
-      return {
-        title: entries.title || '',
-        authors: entries.author || '',
-        journal: entries.journal || entries.booktitle || '',
-        year: entries.year ? Number(entries.year) : new Date().getFullYear(),
-        volume: entries.volume || '',
-        number: entries.number || '',
-        pages: entries.pages || '',
-        doi: entries.doi || '',
-        booktitle: entries.booktitle || '',
-        // ...add other fields as needed
-      };
-    } catch (error) {
-      return null;
-    }
+    return {
+      title: entries.title || '',
+      authors: entries.author || '',
+      journal: entries.journal || entries.booktitle || '',
+      year: entries.year ? Number(entries.year) : new Date().getFullYear(),
+      volume: entries.volume || '',
+      number: entries.number || '',
+      pages: entries.pages || '',
+      doi: entries.doi || '',
+      booktitle: entries.booktitle || '',
+    };
   }
 
   /**

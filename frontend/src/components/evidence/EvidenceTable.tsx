@@ -1,4 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * EvidenceTable component
+ * Displays a sortable table of evidence records.
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ */
+
 import { type SortableField } from '@/types';
 
 interface Evidence {
@@ -8,7 +16,6 @@ interface Evidence {
   typeOfResearch: string;
   participantType: string;
   practiceName?: string;
-  // Support both nested and flat structures
   title?: string;
   year?: number;
   article?: {

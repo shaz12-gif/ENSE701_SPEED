@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // API service for communicating with the backend
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ */
 
 import { ArticleFormData } from "@/components/forms/ArticleForm";
 import { callApi, callApiWithFormData } from "@/utils/apiUtils";

@@ -1,3 +1,11 @@
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * Login Page - Allows users to log in as admin or analyst for restricted features.
+ */
+
 "use client";
 
 import { useState } from 'react';
@@ -37,12 +45,9 @@ export default function LoginPage() {
       if (formData.username === DEMO_CREDENTIALS.admin.username && 
           formData.password === DEMO_CREDENTIALS.admin.password) {
         
-        // Store authentication state in localStorage
         localStorage.setItem(AUTH_STORAGE_KEY, 'true');
         localStorage.setItem(USER_ROLE_STORAGE_KEY, DEMO_CREDENTIALS.admin.role);
         localStorage.setItem(USERNAME_STORAGE_KEY, formData.username);
-        
-        // Redirect to moderation dashboard
         router.push('/moderation/dashboard');
         
       // Check analyst credentials
@@ -52,7 +57,6 @@ export default function LoginPage() {
         localStorage.setItem(AUTH_STORAGE_KEY, 'true');
         localStorage.setItem(USER_ROLE_STORAGE_KEY, DEMO_CREDENTIALS.analyst.role);
         localStorage.setItem(USERNAME_STORAGE_KEY, formData.username);
-        
         router.push('/evidence/extract');
       } else {
         setError('Invalid username or password');

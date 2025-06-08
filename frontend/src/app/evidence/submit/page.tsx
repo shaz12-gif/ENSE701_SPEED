@@ -1,3 +1,11 @@
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+ * Evidence Extraction Page - Allows analysts to add evidence from approved research articles.
+ */
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -5,21 +13,18 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import ArticleSelect from '@/components/forms/ArticleSelect';
 import { getArticles, submitEvidence } from '@/services/api';
+import { Article, Practice } from '@/types';
 
-/**
- * Evidence Extraction Page
- * Allows analysts to add evidence from approved research articles
- */
 export default function SubmitEvidencePage() {
   const router = useRouter();
-  
+
   // State for articles and search
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [articleSearchTerm, setArticleSearchTerm] = useState('');
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
-  
+
   // Form data state
   const [formData, setFormData] = useState({
     articleId: '',
@@ -35,9 +40,9 @@ export default function SubmitEvidencePage() {
     participantType: '',
     analystComments: ''
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Research type options
   const researchTypes = [
     { value: 'case study', label: 'Case Study' },
@@ -46,7 +51,7 @@ export default function SubmitEvidencePage() {
     { value: 'literature review', label: 'Literature Review' },
     { value: 'other', label: 'Other' }
   ];
-  
+
   // Participant type options
   const participantTypes = [
     { value: 'students', label: 'Students' },
@@ -54,10 +59,10 @@ export default function SubmitEvidencePage() {
     { value: 'mixed', label: 'Mixed (Students and Professionals)' },
     { value: 'other', label: 'Other' }
   ];
-  
+
   // Fetch practices from API
   const [practices, setPractices] = useState<Practice[]>([]);
-  
+
   useEffect(() => {
     const fetchPractices = async () => {
       try {
@@ -70,7 +75,7 @@ export default function SubmitEvidencePage() {
         toast.error('Failed to load practices');
       }
     };
-    
+
     const fetchApprovedArticles = async () => {
       try {
         setIsLoading(true);
@@ -88,32 +93,32 @@ export default function SubmitEvidencePage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchPractices();
     fetchApprovedArticles();
   }, []);
-  
+
   // Filter articles when search term changes
   useEffect(() => {
     if (!articleSearchTerm.trim()) {
       setFilteredArticles(articles);
       return;
     }
-    
+
     const lowerCaseSearchTerm = articleSearchTerm.toLowerCase();
     const filtered = articles.filter(
-      article => 
+      article =>
         article.title.toLowerCase().includes(lowerCaseSearchTerm) ||
         article.authors.toLowerCase().includes(lowerCaseSearchTerm)
     );
-    
+
     setFilteredArticles(filtered);
   }, [articleSearchTerm, articles]);
-  
+
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'supportsClaim') {
       // Automatically set result based on supportsClaim checkbox
       const isChecked = (e.target as HTMLInputElement).checked;
@@ -129,16 +134,16 @@ export default function SubmitEvidencePage() {
       }));
     }
   };
-  
+
   // Handle article search
   const handleArticleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setArticleSearchTerm(e.target.value);
   };
-  
+
   // Handle article selection
   const handleArticleSelect = (articleId: string) => {
     const selectedArticle = articles.find(article => article._id === articleId);
-    
+
     setFormData(prev => ({
       ...prev,
       articleId,
@@ -147,7 +152,7 @@ export default function SubmitEvidencePage() {
       year: selectedArticle?.year || new Date().getFullYear()
     }));
   };
-  
+
   // Form validation
   const validateForm = () => {
     if (!formData.articleId) {
@@ -168,18 +173,18 @@ export default function SubmitEvidencePage() {
     }
     return true;
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const response = await submitEvidence(formData);
-      
+
       if (response.success) {
         toast.success('Evidence submitted successfully!');
         router.push('/evidence');
@@ -197,17 +202,17 @@ export default function SubmitEvidencePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Submit Evidence from Research</h1>
-      
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           <p>{error}</p>
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-gray-50 p-6 rounded-lg border">
           <h2 className="text-xl font-semibold mb-4">1. Select an Approved Article</h2>
-          
+
           <div className="mb-4">
             <input
               type="text"
@@ -217,7 +222,7 @@ export default function SubmitEvidencePage() {
               onChange={handleArticleSearch}
             />
           </div>
-          
+
           <ArticleSelect
             articles={filteredArticles}
             onSelect={handleArticleSelect}
@@ -225,10 +230,10 @@ export default function SubmitEvidencePage() {
             error={error}
           />
         </div>
-        
+
         <div className="bg-gray-50 p-6 rounded-lg border">
           <h2 className="text-xl font-semibold mb-4">2. Evidence Details</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="form-group">
               <label htmlFor="practiceId" className="block text-sm font-medium mb-1">
@@ -250,7 +255,7 @@ export default function SubmitEvidencePage() {
                 ))}
               </select>
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="claim" className="block text-sm font-medium mb-1">
                 Claim <span className="text-red-500">*</span>
@@ -267,7 +272,7 @@ export default function SubmitEvidencePage() {
               />
             </div>
           </div>
-          
+
           <div className="mt-4">
             <div className="form-group">
               <label className="flex items-center space-x-2">
@@ -282,7 +287,7 @@ export default function SubmitEvidencePage() {
               </label>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div className="form-group">
               <label htmlFor="typeOfResearch" className="block text-sm font-medium mb-1">
@@ -304,7 +309,7 @@ export default function SubmitEvidencePage() {
                 ))}
               </select>
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="participantType" className="block text-sm font-medium mb-1">
                 Participant Type
@@ -325,7 +330,7 @@ export default function SubmitEvidencePage() {
               </select>
             </div>
           </div>
-          
+
           <div className="mt-4">
             <div className="form-group">
               <label htmlFor="analystComments" className="block text-sm font-medium mb-1">
@@ -343,7 +348,7 @@ export default function SubmitEvidencePage() {
             </div>
           </div>
         </div>
-        
+
         <div className="flex justify-end space-x-4">
           <button
             type="button"
@@ -363,18 +368,4 @@ export default function SubmitEvidencePage() {
       </form>
     </div>
   );
-}
-
-interface Article {
-  _id: string;
-  title: string;
-  authors: string;
-  journal: string;
-  year: number;
-}
-
-interface Practice {
-  id?: string;
-  _id?: string;
-  name: string;
 }

@@ -1,3 +1,9 @@
+/**
+ * Andrew Koves
+ * 20126313
+ * SPEED Group 3
+ *
+*/
 import '@/app/globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
