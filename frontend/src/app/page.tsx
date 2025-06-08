@@ -40,7 +40,7 @@ export default function HomePage() {
           <Link href="/evidence/browse">
             <button>Browse Evidence</button>
           </Link>
-          <Link href="/evidence/submit">
+          <Link href="/articles/submit">
             <button className="secondary">Submit Evidence</button>
           </Link>
         </div>
